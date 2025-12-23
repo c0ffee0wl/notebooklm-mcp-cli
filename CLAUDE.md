@@ -36,46 +36,45 @@ uv run pytest tests/test_file.py::test_function -v
 
 **Python requirement:** >=3.11
 
-## Authentication
+## Authentication (SIMPLIFIED!)
+
+**You only need to provide COOKIES!** The CSRF token and session ID are now **automatically extracted** when needed.
 
 ### Method 1: Chrome DevTools MCP (Recommended)
 
-If Chrome DevTools MCP is available, tokens can be extracted automatically:
-
 ```python
-# 1. Find/navigate to NotebookLM page
-# 2. Get cookies from a network request:
-get_network_request(reqid=<batchexecute_request>)  # Cookie header
+# 1. Navigate to NotebookLM page
+navigate_page(url="https://notebooklm.google.com/")
 
-# 3. Extract CSRF token from page source:
-evaluate_script(function="() => {
-  const html = document.documentElement.outerHTML;
-  const match = html.match(/\"SNlM0e\":\"([^\"]+)\"/);
-  return match ? match[1] : null;
-}")
+# 2. Get cookies from any network request:
+get_network_request(reqid=<any_batchexecute_request>)  # Copy cookie header
 
-# 4. Extract session ID from page source:
-evaluate_script(function="() => {
-  const html = document.documentElement.outerHTML;
-  const match = html.match(/\"FdrFJe\":\"([^\"]+)\"/);
-  return match ? match[1] : null;
-}")
-
-# 5. Save tokens via the MCP tool:
-save_auth_tokens(cookies=<cookie_header>, csrf_token=<token>, session_id=<sid>)
+# 3. Save cookies (CSRF and session ID are auto-extracted!)
+save_auth_tokens(cookies=<cookie_header>)
 ```
+
+That's it! No more manual CSRF token or session ID extraction.
 
 ### Method 2: Environment Variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `NOTEBOOKLM_COOKIES` | Yes | Full cookie header from Chrome DevTools |
-| `NOTEBOOKLM_CSRF_TOKEN` | Yes | The `at=` value from request body |
-| `NOTEBOOKLM_SESSION_ID` | No | The `f.sid=` value from URL |
+| `NOTEBOOKLM_CSRF_TOKEN` | No | (DEPRECATED - auto-extracted) |
+| `NOTEBOOKLM_SESSION_ID` | No | (DEPRECATED - auto-extracted) |
+
+### How Auto-Refresh Works
+
+When the client is initialized without a CSRF token:
+1. It fetches `notebooklm.google.com` using the stored cookies
+2. Extracts `SNlM0e` (CSRF) and `FdrFJe` (session ID) from the page HTML
+3. Uses these tokens for all subsequent API calls
+
+This happens automatically - users never need to think about ephemeral tokens.
 
 ### Essential Cookies
 
-Only these cookies are required for authentication (the MCP automatically filters when saving):
+The MCP needs these cookies (automatically filtered from the full cookie header):
 
 | Cookie | Purpose |
 |--------|---------|
@@ -83,16 +82,18 @@ Only these cookies are required for authentication (the MCP automatically filter
 | `__Secure-1PSID`, `__Secure-3PSID` | Secure session variants |
 | `__Secure-1PAPISID`, `__Secure-3PAPISID` | Secure API variants |
 | `OSID`, `__Secure-OSID` | Origin-bound session |
+| `__Secure-1PSIDTS`, `__Secure-3PSIDTS` | Timestamp tokens |
+| `SIDCC`, `__Secure-1PSIDCC`, `__Secure-3PSIDCC` | Session cookies |
 
-Note: The full cookie header from network requests contains 20+ cookies, but `save_auth_tokens` automatically filters to only the 11 essential ones.
+**Important:** Some cookies (PSIDTS, SIDCC, PSIDCC) rotate frequently. Always get fresh cookies from an active Chrome session.
 
 ### Token Expiration
 
-- **Cookies** (SID, HSID, SSID, APISID, SAPISID): Stable for weeks/months
-- **CSRF token**: Changes on EVERY page reload
-- **Session ID**: Changes on EVERY page reload
+- **Cookies**: Stable for weeks, but some rotate on each request
+- **CSRF token**: Auto-refreshed on each client initialization
+- **Session ID**: Auto-refreshed on each client initialization
 
-This means cached tokens may become stale. When API calls fail, refresh tokens via Chrome DevTools MCP.
+When API calls fail with auth errors, re-extract fresh cookies from Chrome DevTools.
 
 ## Architecture
 

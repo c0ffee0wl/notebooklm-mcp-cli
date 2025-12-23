@@ -11,17 +11,22 @@ An MCP server for **Consumer NotebookLM** (notebooklm.google.com) - the free/per
 | `notebook_list` | List all notebooks |
 | `notebook_create` | Create a new notebook |
 | `notebook_get` | Get notebook details with sources |
+| `notebook_rename` | Rename a notebook |
+| `notebook_delete` | Delete a notebook (requires confirmation) |
 | `notebook_add_url` | Add URL/YouTube as source |
 | `notebook_add_text` | Add pasted text as source |
 | `notebook_add_drive` | Add Google Drive document as source |
 | `notebook_query` | Ask questions and get AI answers |
+| `source_list_drive` | List sources with freshness status |
+| `source_sync_drive` | Sync stale Drive sources (requires confirmation) |
+| `save_auth_tokens` | Save cookies for authentication |
 
 ## Important Disclaimer
 
 This MCP uses **reverse-engineered internal APIs** that:
 - Are undocumented and may change without notice
 - May violate Google's Terms of Service
-- Require manual cookie extraction from your browser
+- Require cookie extraction from your browser
 
 Use at your own risk for personal/experimental purposes.
 
@@ -36,46 +41,34 @@ cd notebooklm-consumer-mcp
 uv tool install .
 ```
 
-## Authentication Setup
+## Authentication Setup (Simplified!)
 
-### Option 1: Automated (Recommended)
+**You only need to extract cookies once** - they last for weeks. The CSRF token and session ID are automatically extracted when needed.
 
-Run the authentication CLI - it will launch Chrome and extract tokens automatically:
+### Option 1: Using Chrome DevTools MCP (Recommended)
 
-```bash
-notebooklm-consumer-auth
-```
+If your AI assistant has Chrome DevTools MCP available:
 
-This will:
-1. Launch Chrome in headless mode to check if you're logged in
-2. If not logged in, open a visible Chrome window for you to log in
-3. Extract cookies and CSRF token automatically
-4. Cache tokens to `~/.notebooklm-consumer/auth.json`
+1. Navigate to `notebooklm.google.com` in Chrome
+2. Ask your assistant to extract cookies from any network request
+3. Call `save_auth_tokens(cookies=<cookie_header>)`
 
-After authentication, just start the MCP server - it will use the cached tokens.
+That's it! Cookies are cached to `~/.notebooklm-consumer/auth.json`.
 
-### Option 2: Manual (Environment Variables)
-
-If you prefer manual extraction:
+### Option 2: Manual Extraction
 
 1. Go to `notebooklm.google.com` in Chrome and log in
 2. Open DevTools (F12) > Network tab
-3. Create a notebook or perform any action
-4. Find a POST request to `/_/LabsTailwindUi/data/batchexecute`
-5. Extract these values:
+3. Refresh or perform any action
+4. Find any request to `notebooklm.google.com`
+5. Copy the entire `Cookie` header value
+6. Set environment variable:
 
-| Value | Where to Find |
-|-------|---------------|
-| Cookies | Request Headers > Cookie |
-| CSRF Token | Request Body > `at=` parameter |
-| Session ID | URL > `f.sid=` parameter |
-
-6. Set environment variables:
 ```bash
-export NOTEBOOKLM_COOKIES="SID=xxx; HSID=xxx; ..."
-export NOTEBOOKLM_CSRF_TOKEN="ACi2F2Ox..."
-export NOTEBOOKLM_SESSION_ID="1234567890"
+export NOTEBOOKLM_COOKIES="SID=xxx; HSID=xxx; SSID=xxx; ..."
 ```
+
+> **Note:** You no longer need to extract CSRF token or session ID manually - they are auto-extracted from the page when the MCP starts.
 
 ## MCP Configuration
 
@@ -93,24 +86,33 @@ Add to `~/.claude.json`:
 }
 ```
 
-If using the automated auth (Option 1), no environment variables are needed - the MCP server will use cached tokens from `~/.notebooklm-consumer/auth.json`.
+### Cursor
 
-For manual auth (Option 2), add environment variables:
+Add to `~/.cursor/mcp.json`:
 
 ```json
 {
   "mcpServers": {
     "notebooklm-consumer": {
-      "command": "notebooklm-consumer-mcp",
-      "env": {
-        "NOTEBOOKLM_COOKIES": "your-cookies-here",
-        "NOTEBOOKLM_CSRF_TOKEN": "your-csrf-token",
-        "NOTEBOOKLM_SESSION_ID": "your-session-id"
-      }
+      "command": "/path/to/notebooklm-consumer-mcp",
+      "args": []
     }
   }
 }
 ```
+
+### Gemini CLI
+
+Add to `~/.gemini/settings.json` under `mcpServers`:
+
+```json
+"notebooklm-consumer": {
+  "command": "/path/to/notebooklm-consumer-mcp",
+  "args": []
+}
+```
+
+No environment variables needed - the MCP uses cached tokens from `~/.notebooklm-consumer/auth.json`.
 
 ## Usage Examples
 
@@ -133,6 +135,15 @@ result = notebook_query(notebook_id, query="What are the key points?")
 print(result["answer"])
 ```
 
+### Sync Stale Drive Sources
+```python
+# Check which sources need syncing
+sources = source_list_drive(notebook_id)
+
+# Sync stale sources (after user confirmation)
+source_sync_drive(source_ids=["id1", "id2"], confirm=True)
+```
+
 ## Consumer vs Enterprise
 
 | Feature | Consumer | Enterprise |
@@ -146,11 +157,21 @@ print(result["answer"])
 | Mind Maps | Yes | No |
 | Flashcards/Quizzes | Yes | No |
 
+## Authentication Lifecycle
+
+| Component | Duration | Refresh |
+|-----------|----------|---------|
+| Cookies | ~2-4 weeks | Re-extract from Chrome when expired |
+| CSRF Token | Per MCP session | Auto-extracted on MCP start |
+| Session ID | Per MCP session | Auto-extracted on MCP start |
+
+When cookies expire, you'll see an auth error. Just extract fresh cookies and call `save_auth_tokens()` again.
+
 ## Limitations
 
-- **Token expiration**: Cookies and CSRF tokens expire and need manual refresh
 - **Rate limits**: Free tier has ~50 queries/day
 - **No official support**: API may change without notice
+- **Cookie expiration**: Need to re-extract cookies every few weeks
 
 ## Contributing
 

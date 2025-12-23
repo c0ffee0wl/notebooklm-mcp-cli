@@ -18,17 +18,17 @@ Enterprise NotebookLM is at vertexaisearch.cloud.google.com (different system, d
 
 This MCP uses reverse-engineered internal APIs and requires browser cookie authentication.
 
-## Authentication via Chrome DevTools MCP (Recommended)
+## Authentication (SIMPLIFIED!)
 
-If Chrome DevTools MCP is available, extract tokens directly:
+You only need to extract COOKIES - the CSRF token and session ID are now auto-extracted!
 
-1. Navigate to notebooklm.google.com (use navigate_page or find existing page)
-2. Get a batchexecute network request (list_network_requests, get_network_request)
-3. Extract CSRF token from page: evaluate_script with regex for "SNlM0e":"([^"]+)"
-4. Extract session ID from page: evaluate_script with regex for "FdrFJe":"([^"]+)"
-5. Call save_auth_tokens with cookies (from request), csrf_token, and session_id
+Using Chrome DevTools MCP:
+1. Navigate to notebooklm.google.com
+2. Get cookies from any network request: get_network_request(reqid=<any_request>)
+3. Call save_auth_tokens(cookies=<cookie_header>)
 
-Note: CSRF token and session ID change on each page reload. Cookies are stable for weeks.
+That's it! Cookies are stable for weeks. The CSRF token and session ID are automatically
+extracted from the page when needed.
 
 ## Available Tools
 
@@ -43,7 +43,7 @@ Note: CSRF token and session ID change on each page reload. Cookies are stable f
 - notebook_query: Ask questions about notebook sources
 - source_list_drive: List all sources with types and check Drive freshness
 - source_sync_drive: Sync stale Drive sources (REQUIRES user confirmation)
-- save_auth_tokens: Save fresh tokens extracted via Chrome DevTools MCP
+- save_auth_tokens: Save cookies for authentication
 
 ## Syncing Drive Sources
 
@@ -62,7 +62,7 @@ For notebook_delete and source_sync_drive, you MUST:
 
 ## Known Limitations
 
-- CSRF token expires on page reload - refresh via Chrome DevTools when API calls fail
+- Cookies expire after several weeks - re-extract when API calls fail with auth errors
 - API is undocumented and may change without notice
 - Rate limits apply (~50 queries/day on free tier)
 """,
@@ -561,32 +561,31 @@ ESSENTIAL_COOKIES = [
     "__Secure-1PSID", "__Secure-3PSID",  # Secure session variants
     "__Secure-1PAPISID", "__Secure-3PAPISID",  # Secure API variants
     "OSID", "__Secure-OSID",  # Origin-bound session
+    "__Secure-1PSIDTS", "__Secure-3PSIDTS",  # Timestamp tokens (rotate frequently)
+    "SIDCC", "__Secure-1PSIDCC", "__Secure-3PSIDCC",  # Session cookies (rotate frequently)
 ]
 
 
 @mcp.tool()
 def save_auth_tokens(
     cookies: str,
-    csrf_token: str,
+    csrf_token: str = "",
     session_id: str = "",
 ) -> dict[str, Any]:
-    """Save authentication tokens extracted from Chrome DevTools MCP.
+    """Save authentication cookies for NotebookLM.
 
-    Use this tool after extracting tokens from Chrome DevTools MCP to refresh
-    authentication. The CSRF token and session ID change on each page reload,
-    so this should be called when API calls start failing.
+    SIMPLIFIED: You only need to provide cookies! The CSRF token and session ID
+    are now automatically extracted when needed.
 
-    To extract tokens using Chrome DevTools MCP:
+    To extract cookies using Chrome DevTools MCP:
     1. Navigate to notebooklm.google.com
-    2. Get cookies from a network request (get_network_request)
-    3. Get CSRF token from page source (evaluate_script with SNlM0e regex)
-    4. Get session ID from page source (evaluate_script with FdrFJe regex)
-    5. Call this tool with the extracted values
+    2. Get cookies from any network request (get_network_request)
+    3. Call this tool with the cookie header
 
     Args:
         cookies: Full cookie header string from a NotebookLM network request
-        csrf_token: The SNlM0e CSRF token from page source
-        session_id: The FdrFJe session ID from page source (optional)
+        csrf_token: (DEPRECATED - auto-extracted) CSRF token from page source
+        session_id: (DEPRECATED - auto-extracted) Session ID from page source
 
     Returns:
         Dictionary with status and cache location
@@ -617,10 +616,11 @@ def save_auth_tokens(
         cookie_dict = {k: v for k, v in all_cookies.items() if k in ESSENTIAL_COOKIES}
 
         # Create and save tokens
+        # Note: csrf_token and session_id are now optional - they'll be auto-extracted
         tokens = AuthTokens(
             cookies=cookie_dict,
-            csrf_token=csrf_token,
-            session_id=session_id,
+            csrf_token=csrf_token,  # May be empty - will be auto-extracted
+            session_id=session_id,  # May be empty - will be auto-extracted
             extracted_at=time.time(),
         )
         save_tokens_to_cache(tokens)
@@ -631,8 +631,10 @@ def save_auth_tokens(
         from .auth import get_cache_path
         return {
             "status": "success",
-            "message": f"Saved {len(cookie_dict)} essential cookies (filtered from {len(all_cookies)})",
+            "message": f"Saved {len(cookie_dict)} essential cookies (filtered from {len(all_cookies)}). "
+                       f"CSRF token and session ID will be auto-extracted when needed.",
             "cache_path": str(get_cache_path()),
+            "note": "You no longer need to extract CSRF token or session ID manually!",
         }
     except Exception as e:
         return {"status": "error", "error": str(e)}

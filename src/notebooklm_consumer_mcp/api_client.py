@@ -130,19 +130,91 @@ class ConsumerNotebookLMClient:
     # Query endpoint (different from batchexecute - streaming gRPC-style)
     QUERY_ENDPOINT = "/_/LabsTailwindUi/data/google.internal.labs.tailwind.orchestration.v1.LabsTailwindOrchestrationService/GenerateFreeFormStreamed"
 
+    # Headers required for page fetch (must look like a browser navigation)
+    _PAGE_FETCH_HEADERS = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-User": "?1",
+        "sec-ch-ua": '"Google Chrome";v="143", "Chromium";v="143", "Not A(Brand";v="24"',
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"macOS"',
+    }
+
     def __init__(self, cookies: dict[str, str], csrf_token: str = "", session_id: str = ""):
         """
         Initialize the client.
 
         Args:
             cookies: Dict of Google auth cookies (SID, SSID, HSID, APISID, SAPISID, etc.)
-            csrf_token: CSRF token (required - extract from page's WIZ_global_data.SNlM0e)
-            session_id: Session ID (optional - extract from f.sid in URL)
+            csrf_token: CSRF token (optional - will be auto-extracted from page if not provided)
+            session_id: Session ID (optional - will be auto-extracted from page if not provided)
         """
         self.cookies = cookies
         self.csrf_token = csrf_token
         self._client: httpx.Client | None = None
         self._session_id = session_id
+
+        # Auto-refresh tokens if not provided
+        if not self.csrf_token:
+            self._refresh_auth_tokens()
+
+    def _refresh_auth_tokens(self) -> None:
+        """
+        Refresh CSRF token and session ID by fetching the NotebookLM homepage.
+
+        This method fetches the NotebookLM page using the stored cookies and
+        extracts the CSRF token (SNlM0e) and session ID (FdrFJe) from the HTML.
+
+        Raises:
+            ValueError: If cookies are expired (redirected to login) or tokens not found
+        """
+        # Build cookie header
+        cookie_header = "; ".join(f"{k}={v}" for k, v in self.cookies.items())
+
+        # Must use browser-like headers for page fetch
+        headers = {**self._PAGE_FETCH_HEADERS, "Cookie": cookie_header}
+
+        # Use a temporary client for the page fetch
+        with httpx.Client(headers=headers, follow_redirects=True, timeout=15.0) as client:
+            response = client.get(f"{self.BASE_URL}/")
+
+            # Check if redirected to login (cookies expired)
+            if "accounts.google.com" in str(response.url):
+                raise ValueError(
+                    "Cookies have expired. Please re-authenticate by extracting fresh cookies "
+                    "from Chrome DevTools and calling save_auth_tokens."
+                )
+
+            if response.status_code != 200:
+                raise ValueError(f"Failed to fetch NotebookLM page: HTTP {response.status_code}")
+
+            html = response.text
+
+            # Extract CSRF token (SNlM0e)
+            csrf_match = re.search(r'"SNlM0e":"([^"]+)"', html)
+            if not csrf_match:
+                # Save HTML for debugging
+                from pathlib import Path
+                debug_dir = Path.home() / ".notebooklm-consumer"
+                debug_dir.mkdir(exist_ok=True)
+                debug_path = debug_dir / "debug_page.html"
+                debug_path.write_text(html)
+                raise ValueError(
+                    f"Could not extract CSRF token from page. "
+                    f"Page saved to {debug_path} for debugging. "
+                    f"The page structure may have changed."
+                )
+
+            self.csrf_token = csrf_match.group(1)
+
+            # Extract session ID (FdrFJe) - optional but helps
+            sid_match = re.search(r'"FdrFJe":"([^"]+)"', html)
+            if sid_match:
+                self._session_id = sid_match.group(1)
 
     def _get_client(self) -> httpx.Client:
         """Get or create HTTP client."""

@@ -13,11 +13,15 @@ from pathlib import Path
 
 @dataclass
 class AuthTokens:
-    """Authentication tokens for NotebookLM."""
+    """Authentication tokens for NotebookLM.
+
+    Only cookies are required. CSRF token and session ID are optional because
+    they can be auto-extracted from the NotebookLM page when needed.
+    """
     cookies: dict[str, str]
-    csrf_token: str
-    session_id: str
-    extracted_at: float
+    csrf_token: str = ""  # Optional - auto-extracted from page
+    session_id: str = ""  # Optional - auto-extracted from page
+    extracted_at: float = 0.0
 
     def to_dict(self) -> dict:
         return {
@@ -31,13 +35,17 @@ class AuthTokens:
     def from_dict(cls, data: dict) -> "AuthTokens":
         return cls(
             cookies=data["cookies"],
-            csrf_token=data["csrf_token"],
-            session_id=data["session_id"],
+            csrf_token=data.get("csrf_token", ""),  # May be empty
+            session_id=data.get("session_id", ""),  # May be empty
             extracted_at=data.get("extracted_at", 0),
         )
 
-    def is_expired(self, max_age_hours: float = 24) -> bool:
-        """Check if tokens are older than max_age_hours."""
+    def is_expired(self, max_age_hours: float = 168) -> bool:
+        """Check if cookies are older than max_age_hours.
+
+        Default is 168 hours (1 week) since cookies are stable for weeks.
+        The CSRF token/session ID will be auto-refreshed regardless.
+        """
         age_seconds = time.time() - self.extracted_at
         return age_seconds > (max_age_hours * 3600)
 
@@ -55,7 +63,12 @@ def get_cache_path() -> Path:
 
 
 def load_cached_tokens() -> AuthTokens | None:
-    """Load tokens from cache if they exist and are not expired."""
+    """Load tokens from cache if they exist.
+
+    Note: We no longer reject tokens based on age. The functional check
+    (redirect to login during CSRF refresh) is the real validity test.
+    Cookies often last much longer than any arbitrary time limit.
+    """
     cache_path = get_cache_path()
     if not cache_path.exists():
         return None
@@ -65,10 +78,10 @@ def load_cached_tokens() -> AuthTokens | None:
             data = json.load(f)
         tokens = AuthTokens.from_dict(data)
 
-        # Check if expired
+        # Just warn if tokens are old, but still return them
+        # Let the API client's functional check determine validity
         if tokens.is_expired():
-            print("Cached auth tokens expired, need to refresh...")
-            return None
+            print("Note: Cached tokens are older than 1 week. They may still work.")
 
         return tokens
     except (json.JSONDecodeError, KeyError, TypeError) as e:
