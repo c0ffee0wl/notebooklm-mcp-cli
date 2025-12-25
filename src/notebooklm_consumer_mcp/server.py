@@ -4,7 +4,7 @@ from typing import Any
 
 from fastmcp import FastMCP
 
-from .api_client import ConsumerNotebookLMClient, extract_cookies_from_chrome_export
+from .api_client import ConsumerNotebookLMClient, extract_cookies_from_chrome_export, parse_timestamp
 
 # Initialize MCP server
 mcp = FastMCP(
@@ -188,6 +188,8 @@ def notebook_list(max_results: int = 100) -> dict[str, Any]:
                     "url": nb.url,
                     "ownership": nb.ownership,
                     "is_shared": nb.is_shared,
+                    "created_at": nb.created_at,
+                    "modified_at": nb.modified_at,
                 }
                 for nb in notebooks[:max_results]
             ],
@@ -232,15 +234,30 @@ def notebook_get(notebook_id: str) -> dict[str, Any]:
         notebook_id: The notebook UUID
 
     Returns:
-        Dictionary with status and notebook details
+        Dictionary with status and notebook details including timestamps
     """
     try:
         client = get_client()
         result = client.get_notebook(notebook_id)
 
+        # Extract timestamps from metadata if available
+        # Result structure: [title, sources, id, emoji, null, metadata, ...]
+        # metadata[5] = modified_at, metadata[8] = created_at
+        created_at = None
+        modified_at = None
+        if result and isinstance(result, list) and len(result) > 5:
+            metadata = result[5]
+            if isinstance(metadata, list):
+                if len(metadata) > 5:
+                    modified_at = parse_timestamp(metadata[5])
+                if len(metadata) > 8:
+                    created_at = parse_timestamp(metadata[8])
+
         return {
             "status": "success",
             "notebook": result,
+            "created_at": created_at,
+            "modified_at": modified_at,
         }
     except Exception as e:
         return {"status": "error", "error": str(e)}

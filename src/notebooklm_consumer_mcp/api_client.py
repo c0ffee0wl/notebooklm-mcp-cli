@@ -67,6 +67,7 @@ import json
 import re
 import urllib.parse
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Any
 
 import httpx
@@ -75,6 +76,30 @@ import httpx
 # Ownership constants (from metadata position 0)
 OWNERSHIP_MINE = 1          # Created by me
 OWNERSHIP_SHARED = 2        # Shared with me by someone else
+
+
+def parse_timestamp(ts_array: list | None) -> str | None:
+    """Convert [seconds, nanoseconds] timestamp array to ISO format string.
+
+    Args:
+        ts_array: Array like [1766621224, 821240000] (seconds, nanos since epoch)
+
+    Returns:
+        ISO format datetime string like "2025-12-24T15:27:04Z" or None if invalid
+    """
+    if not ts_array or not isinstance(ts_array, list) or len(ts_array) < 1:
+        return None
+
+    try:
+        seconds = ts_array[0]
+        if not isinstance(seconds, (int, float)):
+            return None
+
+        # Convert to datetime
+        dt = datetime.fromtimestamp(seconds, tz=timezone.utc)
+        return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+    except (ValueError, OSError, OverflowError):
+        return None
 
 
 @dataclass
@@ -87,6 +112,8 @@ class ConsumerNotebook:
     sources: list[dict]
     is_owned: bool = True     # True if owned by user, False if shared with user
     is_shared: bool = False   # True if shared with others (for owned notebooks)
+    created_at: str | None = None   # ISO format timestamp
+    modified_at: str | None = None  # ISO format timestamp
 
     @property
     def url(self) -> str:
@@ -471,20 +498,31 @@ class ConsumerNotebookLMClient:
                     sources_data = nb_data[1] if len(nb_data) > 1 else []
                     notebook_id = nb_data[2] if len(nb_data) > 2 else None
 
-                    # Extract ownership from metadata at position 5
+                    # Extract ownership and timestamps from metadata at position 5
                     is_owned = True  # Default to owned
-                    is_shared = False # Default to not shared
+                    is_shared = False  # Default to not shared
+                    created_at = None
+                    modified_at = None
+
                     if len(nb_data) > 5 and isinstance(nb_data[5], list) and len(nb_data[5]) > 0:
                         metadata = nb_data[5]
                         ownership_value = metadata[0]
                         # 1 = mine (owned), 2 = shared with me
                         is_owned = ownership_value == OWNERSHIP_MINE
-                        
+
                         # Check if shared (for owned notebooks)
                         # Based on observation: [1, true, true, ...] -> Shared
                         #                       [1, false, true, ...] -> Private
                         if len(metadata) > 1:
                             is_shared = bool(metadata[1])
+
+                        # Extract timestamps from metadata
+                        # metadata[5] = [seconds, nanos] = last modified
+                        # metadata[8] = [seconds, nanos] = created
+                        if len(metadata) > 5:
+                            modified_at = parse_timestamp(metadata[5])
+                        if len(metadata) > 8:
+                            created_at = parse_timestamp(metadata[8])
 
                     sources = []
                     if isinstance(sources_data, list):
@@ -510,6 +548,8 @@ class ConsumerNotebookLMClient:
                             sources=sources,
                             is_owned=is_owned,
                             is_shared=is_shared,
+                            created_at=created_at,
+                            modified_at=modified_at,
                         ))
 
         return notebooks
@@ -1642,6 +1682,19 @@ class ConsumerNotebookLMClient:
                         elif len(slide_deck_options) > 3 and isinstance(slide_deck_options[3], str):
                             slide_deck_url = slide_deck_options[3]
 
+                # Extract created_at timestamp
+                # Position varies by type but often at position 10, 15, or similar
+                created_at = None
+                # Try common timestamp positions
+                for ts_pos in [10, 15, 17]:
+                    if len(artifact_data) > ts_pos:
+                        ts_candidate = artifact_data[ts_pos]
+                        if isinstance(ts_candidate, list) and len(ts_candidate) >= 2:
+                            # Check if it looks like a timestamp [seconds, nanos]
+                            if isinstance(ts_candidate[0], (int, float)) and ts_candidate[0] > 1700000000:
+                                created_at = parse_timestamp(ts_candidate)
+                                break
+
                 # Map type codes to type names
                 type_map = {
                     self.STUDIO_TYPE_AUDIO: "audio",
@@ -1657,6 +1710,7 @@ class ConsumerNotebookLMClient:
                     "title": title,
                     "type": artifact_type,
                     "status": status,
+                    "created_at": created_at,
                     "audio_url": audio_url,
                     "video_url": video_url,
                     "infographic_url": infographic_url,
