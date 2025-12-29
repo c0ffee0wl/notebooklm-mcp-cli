@@ -84,9 +84,9 @@ def launch_chrome(port: int, headless: bool = False) -> bool:
         return False
 
     # Chrome 136+ requires a non-default user-data-dir for remote debugging
-    # We use a temp directory and have the user log in via the browser window
-    import tempfile
-    temp_profile_dir = tempfile.mkdtemp(prefix="notebooklm-chrome-")
+    # We use a persistent directory so Google login is remembered across runs
+    profile_dir = Path.home() / ".notebooklm-consumer" / "chrome-profile"
+    profile_dir.mkdir(parents=True, exist_ok=True)
 
     args = [
         chrome_path,
@@ -94,7 +94,7 @@ def launch_chrome(port: int, headless: bool = False) -> bool:
         "--no-first-run",
         "--no-default-browser-check",
         "--disable-extensions",  # Bypass extensions that may interfere (e.g., Antigravity IDE)
-        f"--user-data-dir={temp_profile_dir}",  # Must be non-default for Chrome 136+
+        f"--user-data-dir={profile_dir}",  # Persistent profile for login persistence
         "--remote-allow-origins=*",  # Allow WebSocket connections from any origin
     ]
 
@@ -355,8 +355,8 @@ def run_auth_flow(port: int = CDP_DEFAULT_PORT, auto_launch: bool = True) -> Aut
             print()
             return None
 
-        print("Launching Chrome with a fresh profile...")
-        print("(You will need to log in to your Google account)")
+        print("Launching Chrome with NotebookLM profile...")
+        print("(First time: you'll need to log in to your Google account)")
         print()
         # Launch with visible window so user can log in
         launch_chrome(port, headless=False)
