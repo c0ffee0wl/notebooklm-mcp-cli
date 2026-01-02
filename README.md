@@ -99,6 +99,32 @@ After upgrading, restart your AI tool to reconnect to the updated MCP server:
 - **Cursor:** Restart the application
 - **Gemini CLI:** Restart the CLI session
 
+## Uninstalling
+
+To completely remove the MCP:
+
+```bash
+# Using uv
+uv tool uninstall notebooklm-mcp-server
+
+# Using pip
+pip uninstall notebooklm-mcp-server
+
+# Using pipx
+pipx uninstall notebooklm-mcp-server
+
+# Remove cached auth tokens (optional)
+rm -rf ~/.notebooklm-mcp
+```
+
+Also remove from your AI tools:
+
+| Tool | Command |
+|------|---------|
+| Claude Code | `claude mcp remove notebooklm-mcp` |
+| Gemini CLI | `gemini mcp remove notebooklm-mcp` |
+| Cursor/VS Code | Remove entry from `~/.cursor/mcp.json` or `~/.vscode/mcp.json` |
+
 ## Authentication
 
 Before using the MCP, you need to authenticate with NotebookLM. Run:
