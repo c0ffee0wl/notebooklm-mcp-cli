@@ -76,7 +76,17 @@ def launch_chrome(port: int, headless: bool = False) -> bool:
     if system == "Darwin":
         chrome_path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
     elif system == "Linux":
-        chrome_path = "google-chrome"
+        # Try multiple Chrome binary names (varies by distro)
+        import shutil
+        chrome_candidates = ["google-chrome", "google-chrome-stable", "chromium", "chromium-browser"]
+        chrome_path = None
+        for candidate in chrome_candidates:
+            if shutil.which(candidate):
+                chrome_path = candidate
+                break
+        if not chrome_path:
+            print(f"Chrome not found. Tried: {', '.join(chrome_candidates)}")
+            return False
     elif system == "Windows":
         chrome_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
     else:
