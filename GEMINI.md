@@ -32,25 +32,26 @@ cd notebooklm-mcp
 uv tool install .
 ```
 
-## Authentication (Simplified!)
+## Authentication
 
-**You only need to extract cookies** - the CSRF token and session ID are now auto-extracted when the MCP starts.
+**Preferred: Run the automated authentication CLI:**
+```bash
+notebooklm-mcp-auth
+```
+This launches Chrome, you log in, and cookies are extracted automatically.
 
-**Option 1: Chrome DevTools MCP (Recommended)**
-If your AI assistant has Chrome DevTools MCP:
-1. Navigate to `notebooklm.google.com`
-2. Get cookies from any network request
-3. Call `save_auth_tokens(cookies=<cookie_header>)`
+**Fallback: Manual extraction (if CLI fails)**
+If the automated tool doesn't work, extract cookies via Chrome DevTools:
+1. Open Chrome DevTools on notebooklm.google.com
+2. Go to Network tab, find a batchexecute request
+3. Copy the Cookie header and call `save_auth_tokens(cookies=...)`
 
-**Option 2: Manual (Environment Variables)**
-Extract the `Cookie` header from Chrome DevTools Network tab:
+**Environment variable (advanced):**
 ```bash
 export NOTEBOOKLM_COOKIES="SID=xxx; HSID=xxx; SSID=xxx; ..."
 ```
 
-> **Note:** CSRF token and session ID are no longer needed - they are auto-extracted from the page HTML when the MCP initializes.
-
-Cookies last for weeks. When they expire, re-extract fresh cookies.
+Cookies last for weeks. When they expire, run `notebooklm-mcp-auth` again.
 
 ## Development Workflow
 

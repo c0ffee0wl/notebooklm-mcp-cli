@@ -337,7 +337,7 @@ Simply chat with your AI tool (Claude Code, Cursor, Gemini CLI) using natural la
 | CSRF Token | Per MCP session | Auto-extracted on MCP start |
 | Session ID | Per MCP session | Auto-extracted on MCP start |
 
-When cookies expire, you'll see an auth error. Just extract fresh cookies and call `save_auth_tokens()` again.
+When cookies expire, you'll see an auth error. Run `notebooklm-mcp-auth` to refresh authentication automatically.
 
 ## Troubleshooting
 

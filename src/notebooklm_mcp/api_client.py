@@ -260,7 +260,7 @@ class NotebookLMClient:
             # Check if redirected to login (cookies expired)
             if "accounts.google.com" in str(response.url):
                 raise ValueError(
-                    "Cookies have expired. Please re-authenticate by running 'notebooklm-mcp-auth'."
+                    "Authentication expired. AI assistants: Run `notebooklm-mcp-auth` via Bash/terminal tool to re-authenticate automatically. Users: Run `notebooklm-mcp-auth` in your terminal."
                 )
 
             if response.status_code != 200:

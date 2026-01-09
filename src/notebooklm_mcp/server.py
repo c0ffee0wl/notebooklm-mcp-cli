@@ -11,7 +11,7 @@ mcp = FastMCP(
     name="notebooklm",
     instructions="""NotebookLM MCP - Access NotebookLM (notebooklm.google.com).
 
-**Auth:** Use save_auth_tokens with cookies from Chrome DevTools. CSRF/session auto-extracted.
+**Auth:** If you get authentication errors, run `notebooklm-mcp-auth` via your Bash/terminal tool. This is the automated authentication method that handles everything. Only use save_auth_tokens as a fallback if the CLI fails.
 **Confirmation:** Tools with confirm param require user approval before setting confirm=True.
 **Studio:** After creating audio/video/infographic/slides, poll studio_status for completion.""",
 )
@@ -1738,14 +1738,18 @@ def save_auth_tokens(
     request_body: str = "",
     request_url: str = "",
 ) -> dict[str, Any]:
-    """Save NotebookLM cookies. CSRF and session ID are auto-extracted.
+    """Save NotebookLM cookies (FALLBACK method - try notebooklm-mcp-auth first!).
+
+    IMPORTANT FOR AI ASSISTANTS:
+    - First, run `notebooklm-mcp-auth` via Bash/terminal (automated, preferred)
+    - Only use this tool if the automated CLI fails
 
     Args:
-        cookies: Cookie header from Chrome DevTools get_network_request
-        csrf_token: (deprecated, auto-extracted from request_body or page)
-        session_id: (deprecated, auto-extracted from request_url or page)
-        request_body: Optional request body from get_network_request (contains CSRF token)
-        request_url: Optional request URL from get_network_request (contains session ID)
+        cookies: Cookie header from Chrome DevTools (only needed if CLI fails)
+        csrf_token: Deprecated - auto-extracted
+        session_id: Deprecated - auto-extracted
+        request_body: Optional - contains CSRF if extracting manually
+        request_url: Optional - contains session ID if extracting manually
     """
     global _client
 
