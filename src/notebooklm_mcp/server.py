@@ -5,6 +5,7 @@ from typing import Any
 from fastmcp import FastMCP
 
 from .api_client import NotebookLMClient, extract_cookies_from_chrome_export, parse_timestamp
+from . import constants
 
 # Initialize MCP server
 mcp = FastMCP(
@@ -950,30 +951,21 @@ def audio_overview_create(
         client = get_client()
 
         # Map format string to code
-        format_codes = {
-            "deep_dive": 1,
-            "brief": 2,
-            "critique": 3,
-            "debate": 4,
-        }
-        format_code = format_codes.get(format.lower())
-        if format_code is None:
+        try:
+            format_code = constants.AUDIO_FORMATS.get_code(format)
+        except ValueError:
             return {
                 "status": "error",
-                "error": f"Unknown format '{format}'. Use: deep_dive, brief, critique, or debate.",
+                "error": f"Unknown format '{format}'. Use: {', '.join(constants.AUDIO_FORMATS.names)}",
             }
 
         # Map length string to code
-        length_codes = {
-            "short": 1,
-            "default": 2,
-            "long": 3,
-        }
-        length_code = length_codes.get(length.lower())
-        if length_code is None:
+        try:
+            length_code = constants.AUDIO_LENGTHS.get_code(length)
+        except ValueError:
             return {
                 "status": "error",
-                "error": f"Unknown length '{length}'. Use: short, default, or long.",
+                "error": f"Unknown length '{length}'. Use: {', '.join(constants.AUDIO_LENGTHS.names)}",
             }
 
         # Get source IDs if not provided
@@ -1053,36 +1045,21 @@ def video_overview_create(
         client = get_client()
 
         # Map format string to code
-        format_codes = {
-            "explainer": 1,
-            "brief": 2,
-        }
-        format_code = format_codes.get(format.lower())
-        if format_code is None:
+        try:
+            format_code = constants.VIDEO_FORMATS.get_code(format)
+        except ValueError:
             return {
                 "status": "error",
-                "error": f"Unknown format '{format}'. Use: explainer or brief.",
+                "error": f"Unknown format '{format}'. Use: {', '.join(constants.VIDEO_FORMATS.names)}",
             }
 
         # Map style string to code
-        style_codes = {
-            "auto_select": 1,
-            "custom": 2,
-            "classic": 3,
-            "whiteboard": 4,
-            "kawaii": 5,
-            "anime": 6,
-            "watercolor": 7,
-            "retro_print": 8,
-            "heritage": 9,
-            "paper_craft": 10,
-        }
-        style_code = style_codes.get(visual_style.lower())
-        if style_code is None:
-            valid_styles = ", ".join(style_codes.keys())
+        try:
+            style_code = constants.VIDEO_STYLES.get_code(visual_style)
+        except ValueError:
             return {
                 "status": "error",
-                "error": f"Unknown visual_style '{visual_style}'. Use: {valid_styles}",
+                "error": f"Unknown visual_style '{visual_style}'. Use: {', '.join(constants.VIDEO_STYLES.names)}",
             }
 
         # Get source IDs if not provided
@@ -1244,29 +1221,21 @@ def infographic_create(
         client = get_client()
 
         # Map orientation string to code
-        orientation_codes = {
-            "landscape": 1,
-            "portrait": 2,
-            "square": 3,
-        }
-        orientation_code = orientation_codes.get(orientation.lower())
-        if orientation_code is None:
+        try:
+            orientation_code = constants.INFOGRAPHIC_ORIENTATIONS.get_code(orientation)
+        except ValueError:
             return {
                 "status": "error",
-                "error": f"Unknown orientation '{orientation}'. Use: landscape, portrait, or square.",
+                "error": f"Unknown orientation '{orientation}'. Use: {', '.join(constants.INFOGRAPHIC_ORIENTATIONS.names)}",
             }
 
         # Map detail_level string to code
-        detail_codes = {
-            "concise": 1,
-            "standard": 2,
-            "detailed": 3,
-        }
-        detail_code = detail_codes.get(detail_level.lower())
-        if detail_code is None:
+        try:
+            detail_code = constants.INFOGRAPHIC_DETAILS.get_code(detail_level)
+        except ValueError:
             return {
                 "status": "error",
-                "error": f"Unknown detail_level '{detail_level}'. Use: concise, standard, or detailed.",
+                "error": f"Unknown detail_level '{detail_level}'. Use: {', '.join(constants.INFOGRAPHIC_DETAILS.names)}",
             }
 
         # Get source IDs if not provided
@@ -1346,27 +1315,21 @@ def slide_deck_create(
         client = get_client()
 
         # Map format string to code
-        format_codes = {
-            "detailed_deck": 1,
-            "presenter_slides": 2,
-        }
-        format_code = format_codes.get(format.lower())
-        if format_code is None:
+        try:
+            format_code = constants.SLIDE_DECK_FORMATS.get_code(format)
+        except ValueError:
             return {
                 "status": "error",
-                "error": f"Unknown format '{format}'. Use: detailed_deck or presenter_slides.",
+                "error": f"Unknown format '{format}'. Use: {', '.join(constants.SLIDE_DECK_FORMATS.names)}",
             }
 
         # Map length string to code
-        length_codes = {
-            "short": 1,
-            "default": 3,
-        }
-        length_code = length_codes.get(length.lower())
-        if length_code is None:
+        try:
+            length_code = constants.SLIDE_DECK_LENGTHS.get_code(length)
+        except ValueError:
             return {
                 "status": "error",
-                "error": f"Unknown length '{length}'. Use: short or default.",
+                "error": f"Unknown length '{length}'. Use: {', '.join(constants.SLIDE_DECK_LENGTHS.names)}",
             }
 
         # Get source IDs if not provided
@@ -1501,15 +1464,24 @@ def flashcards_create(
     try:
         client = get_client()
 
+        # Map difficulty to code
+        try:
+            difficulty_code = constants.FLASHCARD_DIFFICULTIES.get_code(difficulty)
+        except ValueError:
+            return {
+                "status": "error",
+                "error": f"Unknown difficulty '{difficulty}'. Use: {', '.join(constants.FLASHCARD_DIFFICULTIES.names)}",
+            }
+
         # Get source IDs if not provided
         if not source_ids:
             sources = client.get_notebook_sources_with_types(notebook_id)
             source_ids = [s["id"] for s in sources if s.get("id")]
-
+            
         result = client.create_flashcards(
             notebook_id=notebook_id,
             source_ids=source_ids,
-            difficulty=difficulty,
+            difficulty_code=difficulty_code,
         )
 
         if result:
@@ -1532,7 +1504,7 @@ def quiz_create(
     notebook_id: str,
     source_ids: list[str] | None = None,
     question_count: int = 2,
-    difficulty: int = 2,
+    difficulty: str = "medium",
     confirm: bool = False,
 ) -> dict[str, Any]:
     """Generate quiz. Requires confirm=True after user approval.
@@ -1541,7 +1513,7 @@ def quiz_create(
         notebook_id: Notebook UUID
         source_ids: Source IDs (default: all)
         question_count: Number of questions (default: 2)
-        difficulty: Difficulty level (default: 2)
+        difficulty: Difficulty level (default: medium)
         confirm: Must be True after user approval
     """
     if not confirm:
@@ -1560,6 +1532,15 @@ def quiz_create(
     try:
         client = get_client()
 
+        # Map difficulty to code
+        try:
+            difficulty_code = constants.FLASHCARD_DIFFICULTIES.get_code(difficulty)
+        except ValueError:
+            return {
+                "status": "error",
+                "error": f"Unknown difficulty '{difficulty}'. Use: {', '.join(constants.FLASHCARD_DIFFICULTIES.names)}",
+            }
+
         if not source_ids:
             sources = client.get_notebook_sources_with_types(notebook_id)
             source_ids = [s["id"] for s in sources if s.get("id")]
@@ -1568,7 +1549,7 @@ def quiz_create(
             notebook_id=notebook_id,
             source_ids=source_ids,
             question_count=question_count,
-            difficulty=difficulty,
+            difficulty=difficulty_code,
         )
 
         if result:

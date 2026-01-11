@@ -12,7 +12,10 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
+
 import httpx
+
+from . import constants
 
 
 class AuthenticationError(Exception):
@@ -21,8 +24,8 @@ class AuthenticationError(Exception):
 
 
 # Ownership constants (from metadata position 0)
-OWNERSHIP_MINE = 1
-OWNERSHIP_SHARED = 2
+OWNERSHIP_MINE = constants.OWNERSHIP_MINE
+OWNERSHIP_SHARED = constants.OWNERSHIP_SHARED
 
 
 @dataclass
@@ -112,94 +115,94 @@ class NotebookLMClient:
     RPC_IMPORT_RESEARCH = "LBwxtb"      # Import research sources
 
     # Research source types
-    RESEARCH_SOURCE_WEB = 1
-    RESEARCH_SOURCE_DRIVE = 2
-    RESEARCH_MODE_FAST = 1
-    RESEARCH_MODE_DEEP = 5
-    RESULT_TYPE_WEB = 1
-    RESULT_TYPE_GOOGLE_DOC = 2
-    RESULT_TYPE_GOOGLE_SLIDES = 3
-    RESULT_TYPE_DEEP_REPORT = 5
-    RESULT_TYPE_GOOGLE_SHEETS = 8
+    RESEARCH_SOURCE_WEB = constants.RESEARCH_SOURCE_WEB
+    RESEARCH_SOURCE_DRIVE = constants.RESEARCH_SOURCE_DRIVE
+    RESEARCH_MODE_FAST = constants.RESEARCH_MODE_FAST
+    RESEARCH_MODE_DEEP = constants.RESEARCH_MODE_DEEP
+    RESULT_TYPE_WEB = constants.RESULT_TYPE_WEB
+    RESULT_TYPE_GOOGLE_DOC = constants.RESULT_TYPE_GOOGLE_DOC
+    RESULT_TYPE_GOOGLE_SLIDES = constants.RESULT_TYPE_GOOGLE_SLIDES
+    RESULT_TYPE_DEEP_REPORT = constants.RESULT_TYPE_DEEP_REPORT
+    RESULT_TYPE_GOOGLE_SHEETS = constants.RESULT_TYPE_GOOGLE_SHEETS
     RPC_CREATE_STUDIO = "R7cb6c"   # Create Audio or Video Overview
     RPC_POLL_STUDIO = "gArtLc"     # Poll for studio content status
     RPC_DELETE_STUDIO = "V5N4be"   # Delete Audio or Video Overview
 
     # Studio content types
-    STUDIO_TYPE_AUDIO = 1
-    STUDIO_TYPE_VIDEO = 3
-    AUDIO_FORMAT_DEEP_DIVE = 1
-    AUDIO_FORMAT_BRIEF = 2
-    AUDIO_FORMAT_CRITIQUE = 3
-    AUDIO_FORMAT_DEBATE = 4
+    STUDIO_TYPE_AUDIO = constants.STUDIO_TYPE_AUDIO
+    STUDIO_TYPE_VIDEO = constants.STUDIO_TYPE_VIDEO
+    AUDIO_FORMAT_DEEP_DIVE = constants.AUDIO_FORMAT_DEEP_DIVE
+    AUDIO_FORMAT_BRIEF = constants.AUDIO_FORMAT_BRIEF
+    AUDIO_FORMAT_CRITIQUE = constants.AUDIO_FORMAT_CRITIQUE
+    AUDIO_FORMAT_DEBATE = constants.AUDIO_FORMAT_DEBATE
 
     # Audio Overview lengths
-    AUDIO_LENGTH_SHORT = 1
-    AUDIO_LENGTH_DEFAULT = 2
-    AUDIO_LENGTH_LONG = 3
-    VIDEO_FORMAT_EXPLAINER = 1
-    VIDEO_FORMAT_BRIEF = 2
+    AUDIO_LENGTH_SHORT = constants.AUDIO_LENGTH_SHORT
+    AUDIO_LENGTH_DEFAULT = constants.AUDIO_LENGTH_DEFAULT
+    AUDIO_LENGTH_LONG = constants.AUDIO_LENGTH_LONG
+    VIDEO_FORMAT_EXPLAINER = constants.VIDEO_FORMAT_EXPLAINER
+    VIDEO_FORMAT_BRIEF = constants.VIDEO_FORMAT_BRIEF
 
     # Video visual styles
-    VIDEO_STYLE_AUTO_SELECT = 1
-    VIDEO_STYLE_CUSTOM = 2
-    VIDEO_STYLE_CLASSIC = 3
-    VIDEO_STYLE_WHITEBOARD = 4
-    VIDEO_STYLE_KAWAII = 5
-    VIDEO_STYLE_ANIME = 6
-    VIDEO_STYLE_WATERCOLOR = 7
-    VIDEO_STYLE_RETRO_PRINT = 8
-    VIDEO_STYLE_HERITAGE = 9
-    VIDEO_STYLE_PAPER_CRAFT = 10
-    STUDIO_TYPE_REPORT = 2
-    STUDIO_TYPE_FLASHCARDS = 4  # Also used for Quiz (differentiated by options)
-    STUDIO_TYPE_INFOGRAPHIC = 7
-    STUDIO_TYPE_SLIDE_DECK = 8
-    STUDIO_TYPE_DATA_TABLE = 9
+    VIDEO_STYLE_AUTO_SELECT = constants.VIDEO_STYLE_AUTO_SELECT
+    VIDEO_STYLE_CUSTOM = constants.VIDEO_STYLE_CUSTOM
+    VIDEO_STYLE_CLASSIC = constants.VIDEO_STYLE_CLASSIC
+    VIDEO_STYLE_WHITEBOARD = constants.VIDEO_STYLE_WHITEBOARD
+    VIDEO_STYLE_KAWAII = constants.VIDEO_STYLE_KAWAII
+    VIDEO_STYLE_ANIME = constants.VIDEO_STYLE_ANIME
+    VIDEO_STYLE_WATERCOLOR = constants.VIDEO_STYLE_WATERCOLOR
+    VIDEO_STYLE_RETRO_PRINT = constants.VIDEO_STYLE_RETRO_PRINT
+    VIDEO_STYLE_HERITAGE = constants.VIDEO_STYLE_HERITAGE
+    VIDEO_STYLE_PAPER_CRAFT = constants.VIDEO_STYLE_PAPER_CRAFT
+    STUDIO_TYPE_REPORT = constants.STUDIO_TYPE_REPORT
+    STUDIO_TYPE_FLASHCARDS = constants.STUDIO_TYPE_FLASHCARDS  # Also used for Quiz (differentiated by options)
+    STUDIO_TYPE_INFOGRAPHIC = constants.STUDIO_TYPE_INFOGRAPHIC
+    STUDIO_TYPE_SLIDE_DECK = constants.STUDIO_TYPE_SLIDE_DECK
+    STUDIO_TYPE_DATA_TABLE = constants.STUDIO_TYPE_DATA_TABLE
     RPC_GENERATE_MIND_MAP = "yyryJe"  # Generate mind map JSON from sources
     RPC_SAVE_MIND_MAP = "CYK0Xb"      # Save generated mind map to notebook
     RPC_LIST_MIND_MAPS = "cFji9"       # List existing mind maps
     RPC_DELETE_MIND_MAP = "AH0mwd"     # Delete a mind map
 
     # Report format constants
-    REPORT_FORMAT_BRIEFING_DOC = "Briefing Doc"
-    REPORT_FORMAT_STUDY_GUIDE = "Study Guide"
-    REPORT_FORMAT_BLOG_POST = "Blog Post"
-    REPORT_FORMAT_CUSTOM = "Create Your Own"
+    REPORT_FORMAT_BRIEFING_DOC = constants.REPORT_FORMAT_BRIEFING_DOC
+    REPORT_FORMAT_STUDY_GUIDE = constants.REPORT_FORMAT_STUDY_GUIDE
+    REPORT_FORMAT_BLOG_POST = constants.REPORT_FORMAT_BLOG_POST
+    REPORT_FORMAT_CUSTOM = constants.REPORT_FORMAT_CUSTOM
 
     # Flashcard difficulty codes (suspected values)
-    FLASHCARD_DIFFICULTY_EASY = 1
-    FLASHCARD_DIFFICULTY_MEDIUM = 2
-    FLASHCARD_DIFFICULTY_HARD = 3
-    FLASHCARD_COUNT_DEFAULT = 2
-    INFOGRAPHIC_ORIENTATION_LANDSCAPE = 1
-    INFOGRAPHIC_ORIENTATION_PORTRAIT = 2
-    INFOGRAPHIC_ORIENTATION_SQUARE = 3
-    INFOGRAPHIC_DETAIL_CONCISE = 1
-    INFOGRAPHIC_DETAIL_STANDARD = 2
-    INFOGRAPHIC_DETAIL_DETAILED = 3
-    SLIDE_DECK_FORMAT_DETAILED = 1
-    SLIDE_DECK_FORMAT_PRESENTER = 2
+    FLASHCARD_DIFFICULTY_EASY = constants.FLASHCARD_DIFFICULTY_EASY
+    FLASHCARD_DIFFICULTY_MEDIUM = constants.FLASHCARD_DIFFICULTY_MEDIUM
+    FLASHCARD_DIFFICULTY_HARD = constants.FLASHCARD_DIFFICULTY_HARD
+    FLASHCARD_COUNT_DEFAULT = constants.FLASHCARD_COUNT_DEFAULT
+    INFOGRAPHIC_ORIENTATION_LANDSCAPE = constants.INFOGRAPHIC_ORIENTATION_LANDSCAPE
+    INFOGRAPHIC_ORIENTATION_PORTRAIT = constants.INFOGRAPHIC_ORIENTATION_PORTRAIT
+    INFOGRAPHIC_ORIENTATION_SQUARE = constants.INFOGRAPHIC_ORIENTATION_SQUARE
+    INFOGRAPHIC_DETAIL_CONCISE = constants.INFOGRAPHIC_DETAIL_CONCISE
+    INFOGRAPHIC_DETAIL_STANDARD = constants.INFOGRAPHIC_DETAIL_STANDARD
+    INFOGRAPHIC_DETAIL_DETAILED = constants.INFOGRAPHIC_DETAIL_DETAILED
+    SLIDE_DECK_FORMAT_DETAILED = constants.SLIDE_DECK_FORMAT_DETAILED
+    SLIDE_DECK_FORMAT_PRESENTER = constants.SLIDE_DECK_FORMAT_PRESENTER
 
     # Slide Deck length codes
-    SLIDE_DECK_LENGTH_SHORT = 1
-    SLIDE_DECK_LENGTH_DEFAULT = 3
+    SLIDE_DECK_LENGTH_SHORT = constants.SLIDE_DECK_LENGTH_SHORT
+    SLIDE_DECK_LENGTH_DEFAULT = constants.SLIDE_DECK_LENGTH_DEFAULT
 
     # Chat configuration goal/style codes
-    CHAT_GOAL_DEFAULT = 1
-    CHAT_GOAL_CUSTOM = 2
-    CHAT_GOAL_LEARNING_GUIDE = 3
+    CHAT_GOAL_DEFAULT = constants.CHAT_GOAL_DEFAULT
+    CHAT_GOAL_CUSTOM = constants.CHAT_GOAL_CUSTOM
+    CHAT_GOAL_LEARNING_GUIDE = constants.CHAT_GOAL_LEARNING_GUIDE
 
     # Chat configuration response length codes
-    CHAT_RESPONSE_DEFAULT = 1
-    CHAT_RESPONSE_LONGER = 4
-    CHAT_RESPONSE_SHORTER = 5
+    CHAT_RESPONSE_DEFAULT = constants.CHAT_RESPONSE_DEFAULT
+    CHAT_RESPONSE_LONGER = constants.CHAT_RESPONSE_LONGER
+    CHAT_RESPONSE_SHORTER = constants.CHAT_RESPONSE_SHORTER
 
     # Source type constants (from metadata position 4)
     # These represent the Google Workspace document type, NOT the source origin
-    SOURCE_TYPE_GOOGLE_DOCS = 1
-    SOURCE_TYPE_GOOGLE_OTHER = 2
-    SOURCE_TYPE_PASTED_TEXT = 4
+    SOURCE_TYPE_GOOGLE_DOCS = constants.SOURCE_TYPE_GOOGLE_DOCS
+    SOURCE_TYPE_GOOGLE_OTHER = constants.SOURCE_TYPE_GOOGLE_OTHER
+    SOURCE_TYPE_PASTED_TEXT = constants.SOURCE_TYPE_PASTED_TEXT
 
     # Query endpoint (different from batchexecute - streaming gRPC-style)
     QUERY_ENDPOINT = "/_/LabsTailwindUi/data/google.internal.labs.tailwind.orchestration.v1.LabsTailwindOrchestrationService/GenerateFreeFormStreamed"
@@ -764,7 +767,7 @@ class NotebookLMClient:
                     # Source type code is at position 4
                     if len(metadata) > 4:
                         type_code = metadata[4]
-                        source_type = self._get_source_type_name(type_code)
+                        source_type = constants.SOURCE_TYPES.get_name(type_code)
 
                     # URL might be at position 7 for web sources
                     if len(metadata) > 7 and isinstance(metadata[7], list):
@@ -834,14 +837,7 @@ class NotebookLMClient:
         response_length: str = "default",
     ) -> dict[str, Any]:
         """Configure chat goal/style and response length for a notebook."""
-        goal_map = {
-            "default": self.CHAT_GOAL_DEFAULT,
-            "learning_guide": self.CHAT_GOAL_LEARNING_GUIDE,
-            "custom": self.CHAT_GOAL_CUSTOM,
-        }
-        if goal not in goal_map:
-            raise ValueError(f"Invalid goal: {goal}. Must be one of: {list(goal_map.keys())}")
-        goal_code = goal_map[goal]
+        goal_code = constants.CHAT_GOALS.get_code(goal)
 
         # Validate custom prompt
         if goal == "custom":
@@ -851,14 +847,7 @@ class NotebookLMClient:
                 raise ValueError(f"custom_prompt exceeds 10000 chars (got {len(custom_prompt)})")
 
         # Map response length string to code
-        length_map = {
-            "default": self.CHAT_RESPONSE_DEFAULT,
-            "longer": self.CHAT_RESPONSE_LONGER,
-            "shorter": self.CHAT_RESPONSE_SHORTER,
-        }
-        if response_length not in length_map:
-            raise ValueError(f"Invalid response_length: {response_length}. Must be one of: {list(length_map.keys())}")
-        length_code = length_map[response_length]
+        length_code = constants.CHAT_RESPONSE_LENGTHS.get_code(response_length)
 
         if goal == "custom" and custom_prompt:
             goal_setting = [goal_code, custom_prompt]
@@ -1048,7 +1037,7 @@ class NotebookLMClient:
                             "id": source_id,
                             "title": title,
                             "source_type": source_type,
-                            "source_type_name": self._get_source_type_name(source_type),
+                            "source_type_name": constants.SOURCE_TYPES.get_name(source_type),
                             "url": url,
                             "drive_doc_id": drive_doc_id,
                             "can_sync": can_sync,  # True for Drive docs AND Gemini Notes
@@ -1056,19 +1045,6 @@ class NotebookLMClient:
 
         return sources
 
-    @staticmethod
-    def _get_source_type_name(source_type: int | None) -> str:
-        """Convert source type number to human-readable name."""
-        type_names = {
-            1: "google_docs",
-            2: "google_slides_sheets",  # Slides and Sheets both use type 2
-            3: "pdf",                   # PDF files (from URL or upload)
-            4: "pasted_text",
-            5: "web_page",              # Website content
-            8: "pasted_text",           # Also pasted/generated text
-            9: "youtube",               # YouTube video transcripts
-        }
-        return type_names.get(source_type, "unknown")
 
     def add_url_source(self, notebook_id: str, url: str) -> dict | None:
         """Add a URL (website or YouTube) as a source to a notebook.
@@ -1607,7 +1583,7 @@ class NotebookLMClient:
                             "title": title,
                             "description": "",
                             "result_type": result_type,
-                            "result_type_name": self._get_result_type_name(result_type),
+                            "result_type_name": constants.RESULT_TYPES.get_name(result_type),
                         })
                     elif isinstance(src[0], str) or len(src) >= 3:
                         # Fast research format: [url, title, desc, type, ...]
@@ -1622,7 +1598,7 @@ class NotebookLMClient:
                             "title": title,
                             "description": desc,
                             "result_type": result_type,
-                            "result_type_name": self._get_result_type_name(result_type),
+                            "result_type_name": constants.RESULT_TYPES.get_name(result_type),
                         })
 
             # Determine status (1 = in_progress, 2 = completed)
@@ -1646,17 +1622,6 @@ class NotebookLMClient:
         # Return the most recent (first) task
         return research_tasks[0]
 
-    @staticmethod
-    def _get_result_type_name(result_type: int) -> str:
-        """Convert research result type to human-readable name."""
-        type_names = {
-            1: "web",
-            2: "google_doc",
-            3: "google_slides",
-            5: "deep_report",
-            8: "google_sheets",
-        }
-        return type_names.get(result_type, "unknown")
 
     def import_research_sources(
         self,
@@ -1810,8 +1775,8 @@ class NotebookLMClient:
                 "notebook_id": notebook_id,
                 "type": "audio",
                 "status": "in_progress" if status_code == 1 else "completed" if status_code == 3 else "unknown",
-                "format": self._get_audio_format_name(format_code),
-                "length": self._get_audio_length_name(length_code),
+                "format": constants.AUDIO_FORMATS.get_name(format_code),
+                "length": constants.AUDIO_LENGTHS.get_name(length_code),
                 "language": language,
             }
 
@@ -1879,8 +1844,8 @@ class NotebookLMClient:
                 "notebook_id": notebook_id,
                 "type": "video",
                 "status": "in_progress" if status_code == 1 else "completed" if status_code == 3 else "unknown",
-                "format": self._get_video_format_name(format_code),
-                "visual_style": self._get_video_style_name(visual_style_code),
+                "format": constants.VIDEO_FORMATS.get_name(format_code),
+                "visual_style": constants.VIDEO_STYLES.get_name(visual_style_code),
                 "language": language,
             }
 
@@ -2149,8 +2114,8 @@ class NotebookLMClient:
                 "notebook_id": notebook_id,
                 "type": "infographic",
                 "status": "in_progress" if status_code == 1 else "completed" if status_code == 3 else "unknown",
-                "orientation": self._get_infographic_orientation_name(orientation_code),
-                "detail_level": self._get_infographic_detail_name(detail_level_code),
+                "orientation": constants.INFOGRAPHIC_ORIENTATIONS.get_name(orientation_code),
+                "detail_level": constants.INFOGRAPHIC_DETAILS.get_name(detail_level_code),
                 "language": language,
             }
 
@@ -2208,8 +2173,8 @@ class NotebookLMClient:
                 "notebook_id": notebook_id,
                 "type": "slide_deck",
                 "status": "in_progress" if status_code == 1 else "completed" if status_code == 3 else "unknown",
-                "format": self._get_slide_deck_format_name(format_code),
-                "length": self._get_slide_deck_length_name(length_code),
+                "format": constants.SLIDE_DECK_FORMATS.get_name(format_code),
+                "length": constants.SLIDE_DECK_LENGTHS.get_name(length_code),
                 "language": language,
             }
 
@@ -2336,8 +2301,7 @@ class NotebookLMClient:
         self,
         notebook_id: str,
         source_ids: list[str],
-        difficulty: str = "medium",
-        card_count: str = "default",
+        difficulty_code: int = 2,  # FLASHCARD_DIFFICULTY_MEDIUM
     ) -> dict | None:
         """Create Flashcards from notebook sources.
     """
@@ -2346,18 +2310,8 @@ class NotebookLMClient:
         # Build source IDs in the nested format: [[[id1]], [[id2]], ...]
         sources_nested = [[[sid]] for sid in source_ids]
 
-        # Map difficulty string to code
-        difficulty_map = {
-            "easy": self.FLASHCARD_DIFFICULTY_EASY,
-            "medium": self.FLASHCARD_DIFFICULTY_MEDIUM,
-            "hard": self.FLASHCARD_DIFFICULTY_HARD,
-        }
-        if difficulty.lower() not in difficulty_map:
-            raise ValueError(f"Invalid difficulty: {difficulty}. Must be one of: {list(difficulty_map.keys())}")
-        difficulty_code = difficulty_map[difficulty.lower()]
-
         # Card count code (default = 2)
-        count_code = self.FLASHCARD_COUNT_DEFAULT
+        count_code = constants.FLASHCARD_COUNT_DEFAULT
 
         # Options at position 9: [null, [1, null*5, [difficulty, card_count]]]
         flashcard_options = [
@@ -2402,7 +2356,7 @@ class NotebookLMClient:
                 "notebook_id": notebook_id,
                 "type": "flashcards",
                 "status": "in_progress" if status_code == 1 else "completed" if status_code == 3 else "unknown",
-                "difficulty": difficulty.lower(),
+                "difficulty": constants.FLASHCARD_DIFFICULTIES.get_name(difficulty_code),
             }
 
         return None
@@ -2465,7 +2419,7 @@ class NotebookLMClient:
                 "type": "quiz",
                 "status": "in_progress" if status_code == 1 else "completed" if status_code == 3 else "unknown",
                 "question_count": question_count,
-                "difficulty": difficulty,
+                "difficulty": constants.FLASHCARD_DIFFICULTIES.get_name(difficulty),
             }
 
         return None
@@ -2697,90 +2651,6 @@ class NotebookLMClient:
 
         return mind_maps
 
-    @staticmethod
-    def _get_audio_format_name(format_code: int) -> str:
-        """Convert audio format code to human-readable name."""
-        formats = {
-            1: "deep_dive",
-            2: "brief",
-            3: "critique",
-            4: "debate",
-        }
-        return formats.get(format_code, "unknown")
-
-    @staticmethod
-    def _get_audio_length_name(length_code: int) -> str:
-        """Convert audio length code to human-readable name."""
-        lengths = {
-            1: "short",
-            2: "default",
-            3: "long",
-        }
-        return lengths.get(length_code, "unknown")
-
-    @staticmethod
-    def _get_video_format_name(format_code: int) -> str:
-        """Convert video format code to human-readable name."""
-        formats = {
-            1: "explainer",
-            2: "brief",
-        }
-        return formats.get(format_code, "unknown")
-
-    @staticmethod
-    def _get_video_style_name(style_code: int) -> str:
-        """Convert video style code to human-readable name."""
-        styles = {
-            1: "auto_select",
-            2: "custom",
-            3: "classic",
-            4: "whiteboard",
-            5: "kawaii",
-            6: "anime",
-            7: "watercolor",
-            8: "retro_print",
-            9: "heritage",
-            10: "paper_craft",
-        }
-        return styles.get(style_code, "unknown")
-
-    @staticmethod
-    def _get_infographic_orientation_name(orientation_code: int) -> str:
-        """Convert infographic orientation code to human-readable name."""
-        orientations = {
-            1: "landscape",
-            2: "portrait",
-            3: "square",
-        }
-        return orientations.get(orientation_code, "unknown")
-
-    @staticmethod
-    def _get_infographic_detail_name(detail_code: int) -> str:
-        """Convert infographic detail level code to human-readable name."""
-        details = {
-            1: "concise",
-            2: "standard",
-            3: "detailed",
-        }
-        return details.get(detail_code, "unknown")
-
-    @staticmethod
-    def _get_slide_deck_format_name(format_code: int) -> str:
-        """Convert slide deck format code to human-readable name."""
-        formats = {
-            1: "detailed_deck",
-            2: "presenter_slides",
-        }
-        return formats.get(format_code, "unknown")
-
-    @staticmethod
-    def _get_slide_deck_length_name(length_code: int) -> str:
-        """Convert slide deck length code to human-readable name."""
-        lengths = {
-            1: "short",
-            3: "default",
-        }
-        return lengths.get(length_code, "unknown")
 
     def close(self) -> None:
         """Close the HTTP client."""

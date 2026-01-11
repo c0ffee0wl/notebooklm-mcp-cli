@@ -83,6 +83,7 @@ src/notebooklm_mcp/
 ├── __init__.py      # Package version
 ├── server.py        # FastMCP server with tool definitions
 ├── api_client.py    # Internal API client
+├── constants.py     # Code-name mappings (CodeMapper class)
 ├── auth.py          # Token caching and validation
 └── auth_cli.py      # CLI for Chrome-based auth (notebooklm-mcp-auth)
 ```

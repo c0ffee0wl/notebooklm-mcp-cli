@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.8] - 2026-01-10
+
+### Added
+- `constants.py` module as single source of truth for all API code-name mappings
+- `CodeMapper` class with bidirectional lookup (name→code, code→name)
+- Dynamic error messages now show valid options from `CodeMapper`
+
+### Changed
+- **BREAKING:** `quiz_create` now accepts `difficulty: str` ("easy"|"medium"|"hard") instead of `int` (1|2|3)
+- All MCP tools now use `constants.CodeMapper` for input validation
+- All API client output now uses `constants.CodeMapper` for human-readable names
+- Removed ~10 static `_get_*_name` helper methods from `api_client.py`
+- Removed duplicate `*_codes` dictionaries from `server.py` tool functions
+
+### Fixed
+- Removed duplicate code block in research status parsing
+
 ## [0.1.7] - 2026-01-10
 
 ### Fixed

@@ -45,7 +45,6 @@ cookies.txt
 
 # uv
 .uv/
-uv.lock
 
 # Internal planning docs (do not push)
 Studio_tools_plan.md

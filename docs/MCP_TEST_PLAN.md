@@ -1,6 +1,6 @@
 # NotebookLM MCP - Comprehensive Test Plan
 
-**Purpose:** Verify all 30 MCP tools work correctly after optimization.
+**Purpose:** Verify all 31 MCP tools work correctly.
 
 **Prerequisites:**
 - MCP server installed: `uv cache clean && uv tool install --force .`
@@ -32,7 +32,7 @@ Your AI assistant will:
 
 - ✅ **Faster testing** - Complete all 30 tools in minutes instead of hours
 - ✅ **Consistent validation** - Every tool tested the same way each time
-- ✅ **Full coverage** - No skipped tests or missed edge cases
+- ✅ **Full coverage** - Every tool tested the same way each time
 - ✅ **Interactive verification** - AI pauses for critical validations (like Drive sync)
 
 **Example workflow for Drive sync:**
@@ -229,7 +229,7 @@ Ask this question about notebook [notebook_id]: "What is artificial intelligence
 
 ---
 
-### Test 3.3 - Configure Chat
+### Test 3.3 - Configure Chat (Learning Guide)
 **Tool:** `chat_configure`
 
 **Prompt:**
@@ -240,6 +240,33 @@ Configure notebook [notebook_id] chat settings:
 ```
 
 **Expected:** Settings updated successfully.
+
+---
+
+### Test 3.4 - Configure Chat (Custom Prompt)
+**Tool:** `chat_configure`
+
+**Prompt:**
+```
+Configure notebook [notebook_id] chat settings:
+- Goal: custom
+- Custom prompt: "You must respond only in rhyming couplets. Every response should rhyme."
+- Response length: default
+```
+
+**Expected:** Settings updated successfully with custom_prompt echoed back.
+
+---
+
+### Test 3.5 - Verify Custom Chat Prompt Works
+**Tool:** `notebook_query`
+
+**Prompt:**
+```
+Ask notebook [notebook_id]: "What is machine learning?"
+```
+
+**Expected:** AI response should be in rhyming couplets, demonstrating the custom prompt is active.
 
 ---
 
@@ -455,7 +482,7 @@ Show settings first.
 
 **Prompt:**
 ```
-Create a quiz for notebook [notebook_id] with 2 questions and difficulty level 2.
+Create a quiz for notebook [notebook_id] with 2 questions and medium difficulty.
 Show settings first.
 ```
 
@@ -562,9 +589,96 @@ Import all discovered sources from deep research task [task_id from Test 4.4] in
 
 ---
 
-## Test Group 10: Cleanup
+## Test Group 10: Comprehensive Cleanup
 
-### Test 10.1 - Delete Notebook (with confirmation)
+**IMPORTANT:** This section validates that ALL deletion operations work correctly. We've had issues with deletion in the past, so comprehensive cleanup testing is critical.
+
+### Test 10.1 - List All Studio Artifacts
+**Tool:** `studio_status`
+
+**Prompt:**
+```
+Get the full studio status for notebook [notebook_id] to see all artifacts created during testing.
+```
+
+**Expected:** List of all artifacts (audio, video, infographic, slide_deck, report, flashcards, quiz, data_table, mind_map).
+
+**Save:** Note all `artifact_id` values for deletion.
+
+---
+
+### Test 10.2 - Delete Each Studio Artifact
+**Tool:** `studio_delete`
+
+**Prompt (repeat for each artifact):**
+```
+Delete artifact [artifact_id] from notebook [notebook_id] with confirm=True.
+```
+
+**Expected:** Each artifact deleted successfully. Repeat for:
+- [ ] Audio overview
+- [ ] Video overview
+- [ ] Infographic
+- [ ] Slide deck
+- [ ] Report
+- [ ] Flashcards
+- [ ] Quiz
+- [ ] Data table
+- [ ] Mind map (if applicable)
+
+---
+
+### Test 10.3 - Verify Studio Empty
+**Tool:** `studio_status`
+
+**Prompt:**
+```
+Check studio status for notebook [notebook_id] to verify all artifacts are deleted.
+```
+
+**Expected:** Empty artifacts list or `total: 0`.
+
+---
+
+### Test 10.4 - List All Sources
+**Tool:** `source_list_drive`
+
+**Prompt:**
+```
+List all sources in notebook [notebook_id].
+```
+
+**Expected:** List of all sources (URL, text, Drive, research imports).
+
+**Save:** Note all `source_id` values for deletion.
+
+---
+
+### Test 10.5 - Delete Each Source
+**Tool:** `source_delete`
+
+**Prompt (repeat for each source):**
+```
+Delete source [source_id] with confirm=True.
+```
+
+**Expected:** Each source deleted successfully.
+
+---
+
+### Test 10.6 - Verify Sources Empty
+**Tool:** `source_list_drive`
+
+**Prompt:**
+```
+List sources in notebook [notebook_id] to verify all are deleted.
+```
+
+**Expected:** Empty sources list or `total_sources: 0`.
+
+---
+
+### Test 10.7 - Delete Notebook (with confirmation)
 **Tool:** `notebook_delete`
 
 **Prompt:**
@@ -587,12 +701,16 @@ I confirm. Delete it with confirm=True.
 
 After completing all tests, verify:
 
-- [ ] All 30 tools executed without errors
+- [ ] All 31 tools executed without errors
 - [ ] Tools requiring confirmation properly blocked without confirm=True
 - [ ] All create operations returned valid IDs
 - [ ] All status checks returned expected structures
 - [ ] All delete operations worked with confirmation
 - [ ] Error messages were clear and helpful
+- [ ] **All studio artifacts deleted individually before notebook deletion**
+- [ ] **All sources deleted individually before notebook deletion**
+- [ ] **Studio status shows 0 artifacts after cleanup**
+- [ ] **Source list shows 0 sources after cleanup**
 
 ---
 
@@ -602,9 +720,9 @@ After completing all tests, verify:
 
 **Notebook Operations (5):** notebook_list, notebook_create, notebook_get, notebook_describe, notebook_rename
 
-**Source Management (7):** notebook_add_url, notebook_add_text, notebook_add_drive, source_describe, source_get_content, source_list_drive, source_sync_drive
+**Source Management (7):** notebook_add_url, notebook_add_text, notebook_add_drive, source_describe, source_get_content, source_list_drive, source_sync_drive, source_delete
 
-**AI Features (2):** notebook_query, chat_configure
+**AI Features (3):** notebook_query, chat_configure (learning_guide + custom prompt)
 
 **Research (3 tools, 6 tests):** research_start, research_status, research_import
 - Tests 4.1-4.3: Fast research (~10 sources, 30 seconds)
@@ -618,7 +736,7 @@ After completing all tests, verify:
 
 **Cleanup (1):** notebook_delete
 
-**Total: 30 tools**
+**Total: 31 tools**
 
 ---
 
@@ -638,6 +756,8 @@ Use these prompts sequentially with another AI tool that has access to the MCP:
 10. `Get AI summary of notebook [id]`
 11. `Ask notebook [id]: "What is artificial intelligence?"`
 12. `Configure notebook [id] chat: goal=learning_guide, response_length=longer`
+12b. `Configure notebook [id] chat: goal=custom, custom_prompt="Respond only in rhyming couplets"`
+12c. `Ask notebook [id]: "What is machine learning?"` ← **Verify response is in rhymes**
 13. `Start fast web research for "OpenShift" in notebook [id]`
 14. `Check research status for notebook [id]`
 15. `Import all research sources from task [task_id] into notebook [id]`
@@ -651,11 +771,17 @@ Use these prompts sequentially with another AI tool that has access to the MCP:
 23. `Create short slide deck for notebook [id] (show settings first)`
 24. `Create Briefing Doc report for notebook [id] (show settings first)`
 25. `Create medium difficulty flashcards for notebook [id] (show settings first)`
-26. `Create mind map titled "AI Concepts" for notebook [id] (show settings first)`
-
+26. `Create quiz with 2 questions and medium difficulty for notebook [id] (show settings first)`
+27. `Create mind map titled "AI Concepts" for notebook [id] (show settings first)`
 28. `Check deep research status for notebook [id]` ← **By now, deep research should be complete**
 29. `Verify source_count > 0 and report field has content`
 30. `Import all deep research sources into notebook [id]`
-31. `Delete audio artifact [artifact_id] from notebook [id] (show warning first)`
-32. `Confirmed - delete it with confirm=True`
-33. `Delete notebook [id] (show warning first)` → `Confirmed - delete with confirm=True`
+
+**Comprehensive Cleanup:**
+31. `Get studio status for notebook [id]` ← **List all artifact IDs**
+32. `Delete each studio artifact [artifact_id] with confirm=True` ← **Repeat for all 9 artifacts**
+33. `Verify studio status shows 0 artifacts`
+34. `List all sources in notebook [id]` ← **List all source IDs**
+35. `Delete each source [source_id] with confirm=True` ← **Repeat for all sources**
+36. `Verify source list shows 0 sources`
+37. `Delete notebook [id] (show warning first)` → `Confirmed - delete with confirm=True`
