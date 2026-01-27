@@ -181,6 +181,7 @@ class ConversationTurn:
 
 
 
+
 def parse_timestamp(ts_array: list | None) -> str | None:
     """Convert [seconds, nanoseconds] timestamp array to ISO format string.
     """
@@ -197,6 +198,41 @@ def parse_timestamp(ts_array: list | None) -> str | None:
         return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
     except (ValueError, OSError, OverflowError):
         return None
+
+
+def extract_cookies_from_chrome_export(cookie_data: str | list[dict]) -> dict[str, str]:
+    """Extract cookies from Chrome export format (JSON) or header string.
+    
+    Handles:
+    1. JSON list of dicts (from EditThisCookie or CDP)
+    2. JSON dict (simple key-value)
+    3. Semicolon-separated string (Cookie header value)
+    """
+    if isinstance(cookie_data, list):
+        # Already a list of dicts (e.g. from CDP)
+        return {c.get("name"): c.get("value") for c in cookie_data if "name" in c and "value" in c}
+    
+    if not isinstance(cookie_data, str):
+        return {}
+
+    # Try parsing as JSON first
+    try:
+        data = json.loads(cookie_data)
+        if isinstance(data, list):
+            return {c.get("name"): c.get("value") for c in data if "name" in c and "value" in c}
+        if isinstance(data, dict):
+             return {str(k): str(v) for k, v in data.items()}
+    except json.JSONDecodeError:
+        pass
+        
+    # Fallback: Parse as Cookie header string
+    cookies = {}
+    for item in cookie_data.split(";"):
+        if "=" in item:
+            name, value = item.strip().split("=", 1)
+            cookies[name] = value
+    return cookies
+
 
 
 @dataclass

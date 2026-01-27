@@ -51,13 +51,33 @@ nlm login
 
 ---
 
+## Command Structure: Noun-First vs Verb-First
+
+The CLI supports **TWO command styles** - use whichever feels more natural:
+
+### Noun-First (Resource-Oriented)
+```bash
+nlm notebook create "Title"
+nlm notebook list
+nlm source add <notebook> --url <url>
+nlm studio status <notebook>
+```
+
+### Verb-First (Action-Oriented)
+```bash
+nlm create notebook "Title"
+nlm list notebooks
+nlm add url <notebook> <url>
+nlm status artifacts <notebook>
+```
+
+**Both styles call the same functions.** Choose based on preference. This guide shows both.
+
+---
+
 ## Quick Reference
 
-```
-nlm <command> [subcommand] [options]
-```
-
-### All Top-Level Commands
+### All Top-Level Commands (Noun-First)
 
 | Command | Description |
 |---------|-------------|
@@ -70,6 +90,7 @@ nlm <command> [subcommand] [options]
 | `nlm studio` | Manage artifacts (status, delete) |
 | `nlm research` | Research and discover sources (start, status, import) |
 | `nlm alias` | Manage ID shortcuts (set, get, list, delete) |
+| `nlm download` | Download artifacts (audio, video, report, mind-map, slides, infographic, data-table) |
 | `nlm audio` | Create audio overviews/podcasts (create) |
 | `nlm report` | Create reports (create) |
 | `nlm quiz` | Create quizzes (create) |
@@ -79,6 +100,28 @@ nlm <command> [subcommand] [options]
 | `nlm infographic` | Create infographics (create) |
 | `nlm video` | Create video overviews (create) |
 | `nlm data-table` | Create data tables (create) |
+
+### All Verb-First Commands
+
+| Command | Description |
+|---------|-------------|
+| `nlm create` | Create resources (notebook, audio, video, report, infographic, slides, quiz, flashcards, data-table, mindmap) |
+| `nlm list` | List resources (notebooks, sources, artifacts, aliases, stale-sources) |
+| `nlm get` | Get details (notebook, source, config, alias) |
+| `nlm delete` | Delete resources (notebook, source, artifact, alias) |
+| `nlm add` | Add sources (url, text, drive) |
+| `nlm describe` | Get AI summaries (notebook, source) |
+| `nlm query` | Chat with sources (notebook) |
+| `nlm sync` | Sync Drive sources |
+| `nlm content` | Get raw source content |
+| `nlm stale` | List stale Drive sources |
+| `nlm rename` | Rename resources (notebook) |
+| `nlm status` | Check status (artifacts, research) |
+| `nlm configure` | Configure settings (chat) |
+| `nlm set` | Set values (alias, config) |
+| `nlm show` | Show information (config, aliases) |
+| `nlm download-verb` | Download artifacts (audio, video, report, mind-map, slides, infographic, data-table) |
+| `nlm research-verb` | Research commands (start, import) |
 
 ---
 
@@ -122,17 +165,10 @@ nlm auth list                          # List all profiles
 nlm auth delete work --confirm         # Delete a profile
 ```
 
-### Config Commands
-
-```bash
-nlm config show                        # Display current config (TOML)
-nlm config show --json                 # Display as JSON
-nlm config get <key>                   # Get specific setting
-nlm config set <key> <value>           # Update setting
-```
 
 ### Notebook Commands
 
+**Noun-First:**
 ```bash
 nlm notebook list                      # List all notebooks
 nlm notebook list --json               # JSON output
@@ -141,22 +177,29 @@ nlm notebook list --title              # "ID: Title" format
 nlm notebook list --full               # All columns
 
 nlm notebook create "Title"            # Create new notebook
-
 nlm notebook get <id>                  # Get notebook details
-
 nlm notebook describe <id>             # AI summary with topics
-
 nlm notebook rename <id> "New Title"   # Rename notebook
-
 nlm notebook delete <id> --confirm     # Delete permanently
-
 nlm notebook query <id> "question"     # Chat with sources
 nlm notebook query <id> "follow up" --conversation-id <cid>
 nlm notebook query <id> "question" --source-ids <id1,id2>
 ```
 
+**Verb-First:**
+```bash
+nlm list notebooks                     # List all notebooks
+nlm create notebook "Title"            # Create new notebook
+nlm get notebook <id>                  # Get notebook details
+nlm describe notebook <id>             # AI summary with topics
+nlm rename notebook <id> "New Title"   # Rename notebook
+nlm delete notebook <id> --confirm     # Delete permanently
+nlm query notebook <id> "question"     # Chat with sources
+```
+
 ### Source Commands
 
+**Noun-First:**
 ```bash
 nlm source list <notebook-id>          # List sources
 nlm source list <notebook-id> --full   # Full details
@@ -172,21 +215,33 @@ nlm source add <notebook-id> --drive <doc-id> --type slides  # Add Drive slides
 # Types: doc, slides, sheets, pdf
 
 nlm source get <source-id>             # Get source metadata
-
 nlm source describe <source-id>        # AI summary + keywords
-
 nlm source content <source-id>         # Raw text content
 nlm source content <source-id> --output file.txt  # Export to file
-
 nlm source delete <source-id> --confirm  # Delete source
-
 nlm source stale <notebook-id>         # List stale Drive sources
 nlm source sync <notebook-id> --confirm  # Sync all stale
 nlm source sync <notebook-id> --source-ids <ids> --confirm  # Sync specific
 ```
 
+**Verb-First:**
+```bash
+nlm list sources <notebook-id>         # List sources
+nlm add url <notebook-id> <url>        # Add URL source
+nlm add text <notebook-id> "content" --title "Title"  # Add text source
+nlm add drive <notebook-id> <doc-id>   # Add Drive source
+nlm get source <source-id>             # Get source metadata
+nlm describe source <source-id>        # AI summary + keywords
+nlm content source <source-id>         # Raw text content
+nlm delete source <source-id> --confirm  # Delete source
+nlm list stale-sources <notebook-id>   # List stale Drive sources
+nlm stale sources <notebook-id>        # Alternative: list stale sources
+nlm sync sources <notebook-id> --confirm  # Sync all stale sources
+```
+
 ### Chat Commands
 
+**Noun-First:**
 ```bash
 # Interactive REPL (multi-turn conversation)
 nlm chat start <notebook-id>           # Start interactive session
@@ -203,8 +258,16 @@ nlm chat configure <notebook-id> --goal custom --prompt "Act as a tutor..."
 nlm chat configure <notebook-id> --response-length longer   # longer, default, shorter
 ```
 
+**Verb-First:**
+```bash
+nlm configure chat <notebook-id> --goal default            # Configure chat
+nlm configure chat <notebook-id> --style conversational    # Set chat style
+nlm configure chat <notebook-id> --length longer           # Set response length
+```
+
 ### Research Commands
 
+**Noun-First:**
 ```bash
 # Start research (--notebook-id is REQUIRED)
 nlm research start "query" --notebook-id <id>                    # Fast web (default)
@@ -223,6 +286,14 @@ nlm research import <notebook-id> <task-id>              # Import all
 nlm research import <notebook-id> <task-id> --indices 0,2,5  # Import specific
 ```
 
+**Verb-First:**
+```bash
+nlm research-verb start "query" --notebook-id <id>       # Start research
+nlm research-verb start "query" --notebook-id <id> --mode deep
+nlm status research <notebook-id>                        # Check progress
+nlm research-verb import <notebook-id> <task-id>         # Import sources
+```
+
 **Research Modes:**
 - `fast`: ~30 seconds, ~10 sources (web or drive)
 - `deep`: ~5 minutes, ~40-80 sources (web only)
@@ -236,6 +307,8 @@ nlm research import <notebook-id> <task-id> --indices 0,2,5  # Import specific
 - `--profile <name>`: Use specific auth profile
 
 #### Audio (Podcast)
+
+**Noun-First:**
 ```bash
 nlm audio create <notebook-id> --confirm
 nlm audio create <notebook-id> --format deep_dive --length default --confirm
@@ -244,7 +317,15 @@ nlm audio create <notebook-id> --format brief --focus "key topic" --confirm
 # Lengths: short, default, long
 ```
 
+**Verb-First:**
+```bash
+nlm create audio <notebook-id> --confirm
+nlm create audio <notebook-id> --length medium --format mp3 --confirm
+```
+
 #### Report
+
+**Noun-First:**
 ```bash
 nlm report create <notebook-id> --confirm
 nlm report create <notebook-id> --format "Study Guide" --confirm
@@ -252,7 +333,15 @@ nlm report create <notebook-id> --format "Create Your Own" --prompt "Summary..."
 # Formats: "Briefing Doc", "Study Guide", "Blog Post", "Create Your Own"
 ```
 
+**Verb-First:**
+```bash
+nlm create report <notebook-id> --confirm
+nlm create report <notebook-id> --type study-guide --confirm
+```
+
 #### Quiz
+
+**Noun-First:**
 ```bash
 nlm quiz create <notebook-id> --confirm
 nlm quiz create <notebook-id> --count 5 --difficulty 3 --confirm
@@ -260,20 +349,44 @@ nlm quiz create <notebook-id> --count 5 --difficulty 3 --confirm
 # Difficulty: 1-5 (1=easy, 5=hard, default: 2)
 ```
 
+**Verb-First:**
+```bash
+nlm create quiz <notebook-id> --confirm
+nlm create quiz <notebook-id> --difficulty medium --quantity 10 --confirm
+```
+
 #### Flashcards
+
+**Noun-First:**
 ```bash
 nlm flashcards create <notebook-id> --confirm
 nlm flashcards create <notebook-id> --difficulty hard --confirm
 # Difficulty: easy, medium, hard (default: medium)
 ```
 
+**Verb-First:**
+```bash
+nlm create flashcards <notebook-id> --confirm
+nlm create flashcards <notebook-id> --difficulty hard --confirm
+```
+
 #### Mind Map
+
+**Noun-First:**
 ```bash
 nlm mindmap create <notebook-id> --confirm
 nlm mindmap create <notebook-id> --title "Topic Overview" --confirm
 ```
 
+**Verb-First:**
+```bash
+nlm create mindmap <notebook-id> --confirm
+nlm create mindmap <notebook-id> --title "Overview" --confirm
+```
+
 #### Slides
+
+**Noun-First:**
 ```bash
 nlm slides create <notebook-id> --confirm
 nlm slides create <notebook-id> --format presenter --length short --confirm
@@ -281,7 +394,15 @@ nlm slides create <notebook-id> --format presenter --length short --confirm
 # Lengths: short, default
 ```
 
+**Verb-First:**
+```bash
+nlm create slides <notebook-id> --confirm
+nlm create slides <notebook-id> --length short --format pdf --confirm
+```
+
 #### Infographic
+
+**Noun-First:**
 ```bash
 nlm infographic create <notebook-id> --confirm
 nlm infographic create <notebook-id> --orientation portrait --detail detailed --confirm
@@ -289,7 +410,15 @@ nlm infographic create <notebook-id> --orientation portrait --detail detailed --
 # Detail: concise, standard, detailed (default: standard)
 ```
 
+**Verb-First:**
+```bash
+nlm create infographic <notebook-id> --confirm
+nlm create infographic <notebook-id> --orientation portrait --detail detailed --confirm
+```
+
 #### Video
+
+**Noun-First:**
 ```bash
 nlm video create <notebook-id> --confirm
 nlm video create <notebook-id> --format brief --style whiteboard --confirm
@@ -297,29 +426,120 @@ nlm video create <notebook-id> --format brief --style whiteboard --confirm
 # Styles: auto_select, classic, whiteboard, kawaii, anime, watercolor, retro_print, heritage, paper_craft
 ```
 
+**Verb-First:**
+```bash
+nlm create video <notebook-id> --confirm
+nlm create video <notebook-id> --style whiteboard --format mp4 --confirm
+```
+
 #### Data Table
+
+**Noun-First:**
 ```bash
 nlm data-table create <notebook-id> "Extract all dates and events" --confirm
 # DESCRIPTION is REQUIRED as second argument
 ```
 
+**Verb-First:**
+```bash
+nlm create data-table <notebook-id> "Extract all dates and events" --confirm
+# DESCRIPTION is REQUIRED as second argument
+```
+
 ### Studio Commands (Artifact Management)
 
+**Noun-First:**
 ```bash
 nlm studio status <notebook-id>                    # List all artifacts + status
 nlm studio status <notebook-id> --json             # JSON output
 nlm studio status <notebook-id> --full             # All details
-
 nlm studio delete <notebook-id> <artifact-id> --confirm  # Delete artifact
 ```
 
+**Verb-First:**
+```bash
+nlm status artifacts <notebook-id>                 # List all artifacts + status
+nlm status artifacts <notebook-id> --full          # All details
+nlm delete artifact <notebook-id> <artifact-id> --confirm  # Delete artifact
+```
+
+### Download Commands (Get Artifact Files)
+
+**Download generated artifacts to local files.** All artifacts are streamed efficiently to avoid memory issues.
+
+**Noun-First:**
+```bash
+nlm download audio <notebook-id> <artifact-id>              # Download audio (mp3)
+nlm download audio <notebook-id> <artifact-id> --output podcast.mp3
+nlm download video <notebook-id> <artifact-id>              # Download video (mp4)
+nlm download report <notebook-id> <artifact-id>             # Download report (txt/md)
+nlm download mind-map <notebook-id> <artifact-id>           # Download mind map (txt)
+nlm download slide-deck <notebook-id> <artifact-id>         # Download slides (txt)
+nlm download infographic <notebook-id> <artifact-id>        # Download infographic (png)
+nlm download data-table <notebook-id> <artifact-id>         # Download data table (csv)
+```
+
+**Verb-First:**
+```bash
+nlm download-verb audio <notebook-id> <artifact-id>         # Download audio
+nlm download-verb video <notebook-id> <artifact-id>         # Download video
+nlm download-verb report <notebook-id> <artifact-id>        # Download report
+nlm download-verb mind-map <notebook-id> <artifact-id>      # Download mind map
+nlm download-verb slides <notebook-id> <artifact-id>        # Download slides
+nlm download-verb infographic <notebook-id> <artifact-id>   # Download infographic
+nlm download-verb data-table <notebook-id> <artifact-id>    # Download data table
+```
+
+**Download Workflow:**
+1. Generate artifact: `nlm audio create <notebook> --confirm`
+2. Check status: `nlm studio status <notebook>` (wait for "completed")
+3. Get artifact ID from status output
+4. Download: `nlm download audio <notebook> <artifact-id>`
+
+**Supported Formats:**
+- Audio: `.mp3` (Deep Dive, Brief, Critique, Debate)
+- Video: `.mp4` (Explainer, Brief with various styles)
+- Report: `.txt` or `.md` (Briefing Doc, Study Guide, Blog Post)
+- Mind Map: `.txt` (node structure)
+- Slide Deck: `.txt` (slide content)
+- Infographic: `.png` (visual)
+- Data Table: `.csv` (tabular data)
+
 ### Alias Commands
 
+**Noun-First:**
 ```bash
 nlm alias set <name> <uuid>     # Create/update alias (auto-detects type)
 nlm alias get <name>            # Get UUID for alias
 nlm alias list                  # List all aliases
 nlm alias delete <name>         # Remove (no --confirm needed)
+```
+
+**Verb-First:**
+```bash
+nlm set alias <name> <uuid>     # Create/update alias
+nlm get alias <name>            # Get UUID for alias
+nlm list aliases                # List all aliases
+nlm show aliases                # Alternative: show all aliases
+nlm delete alias <name>         # Remove alias
+```
+
+### Config Commands
+
+**Noun-First:**
+```bash
+nlm config show                 # Display current config (TOML)
+nlm config show --json          # Display as JSON
+nlm config get <key>            # Get specific setting
+nlm config set <key> <value>    # Update setting
+```
+
+**Verb-First:**
+```bash
+nlm show config                 # Display current config
+nlm show config --json          # Display as JSON
+nlm get config <key>            # Get specific setting
+nlm set config <key> <value>    # Update setting
 ```
 
 ---
@@ -354,7 +574,7 @@ List commands support multiple formats:
 
 ## Complete Task Sequences
 
-### Sequence 1: Research → Podcast
+### Sequence 1: Research → Podcast → Download (Noun-First)
 
 ```bash
 # 1. Authenticate
@@ -382,24 +602,101 @@ nlm audio create ai --format deep_dive --confirm
 
 # 8. Check status until completed
 nlm studio status ai
+# Note artifact ID: audio789...
+
+# 9. Download when ready
+nlm download audio ai audio789... --output podcast.mp3
+```
+
+### Sequence 1 Alternative: Research → Podcast → Download (Verb-First)
+
+```bash
+# 1. Authenticate
+nlm login
+
+# 2. Create notebook
+nlm create notebook "AI Research 2026"
+# ID: abc123...
+
+# 3. Set alias
+nlm set alias ai abc123...
+
+# 4. Start research
+nlm research-verb start "agentic AI trends 2026" --notebook-id ai --mode deep
+
+# 5. Check status
+nlm status research ai --max-wait 300
+
+# 6. Import sources
+nlm research-verb import ai task456...
+
+# 7. Create podcast
+nlm create audio ai --confirm
+
+# 8. Check status
+nlm status artifacts ai
+
+# 9. Download
+nlm download-verb audio ai audio789... --output podcast.mp3
 ```
 
 ### Sequence 2: Quick Source Ingestion
 
+**Noun-First:**
 ```bash
-# Add multiple URLs
 nlm source add <notebook-id> --url "https://example1.com"
 nlm source add <notebook-id> --url "https://example2.com"
 nlm source add <notebook-id> --text "My notes here" --title "Notes"
 nlm source list <notebook-id>
 ```
 
+**Verb-First:**
+```bash
+nlm add url <notebook-id> "https://example1.com"
+nlm add url <notebook-id> "https://example2.com"
+nlm add text <notebook-id> "My notes here" --title "Notes"
+nlm list sources <notebook-id>
+```
+
 ### Sequence 3: Generate Study Materials
 
+**Noun-First:**
 ```bash
 nlm quiz create <notebook-id> --count 10 --difficulty 3 --confirm
 nlm flashcards create <notebook-id> --difficulty hard --confirm
 nlm report create <notebook-id> --format "Study Guide" --confirm
+```
+
+**Verb-First:**
+```bash
+nlm create quiz <notebook-id> --difficulty medium --quantity 10 --confirm
+nlm create flashcards <notebook-id> --difficulty hard --confirm
+nlm create report <notebook-id> --type study-guide --confirm
+```
+
+### Sequence 4: Complete Content Generation Pipeline
+
+```bash
+# Create all content types at once
+nlm create audio <notebook-id> --confirm
+nlm create video <notebook-id> --confirm
+nlm create report <notebook-id> --confirm
+nlm create quiz <notebook-id> --confirm
+nlm create flashcards <notebook-id> --confirm
+nlm create mindmap <notebook-id> --confirm
+nlm create slides <notebook-id> --confirm
+nlm create infographic <notebook-id> --confirm
+
+# Check all statuses
+nlm status artifacts <notebook-id> --full
+
+# Download all when ready (replace <artifact-ids> with actual IDs)
+nlm download-verb audio <notebook-id> <audio-id>
+nlm download-verb video <notebook-id> <video-id>
+nlm download-verb report <notebook-id> <report-id>
+nlm download-verb mind-map <notebook-id> <mindmap-id>
+nlm download-verb slides <notebook-id> <slides-id>
+nlm download-verb infographic <notebook-id> <infographic-id>
 ```
 
 ---
@@ -410,14 +707,20 @@ nlm report create <notebook-id> --format "Study Guide" --confirm
 2. **Use `--confirm` for all generation/delete commands** to avoid blocking prompts
 3. **Capture IDs from create outputs** - you'll need them for subsequent operations
 4. **Use aliases** for frequently-used notebooks to simplify commands
-5. **Poll for long operations** - audio/video takes 1-5 minutes; use `nlm studio status`
+5. **Poll for long operations** - audio/video takes 1-5 minutes; use `nlm studio status` or `nlm status artifacts`
 6. **Research requires `--notebook-id`** - the flag is mandatory
 7. **Session lifetime is ~20 minutes** - re-login if operations start failing
 8. **Use `--max-wait 0`** for single status poll instead of blocking
 9. **⚠️ ALWAYS ask user before delete** - Before running ANY delete command, ask the user for explicit confirmation. Deletions are IRREVERSIBLE. Show what will be deleted and warn about permanent data loss.
-10. **Check aliases before creating** - Run `nlm alias list` before creating a new alias to avoid conflicts with existing names.
-11. **DO NOT launch REPL** - Never use `nlm chat start` - it opens an interactive REPL that AI tools cannot control. Use `nlm notebook query` for one-shot Q&A instead.
+10. **Check aliases before creating** - Run `nlm alias list` or `nlm list aliases` before creating a new alias to avoid conflicts with existing names.
+11. **DO NOT launch REPL** - Never use `nlm chat start` - it opens an interactive REPL that AI tools cannot control. Use `nlm notebook query` or `nlm query notebook` for one-shot Q&A instead.
 12. **Choose output format wisely** - Default output (no flags) is compact and token-efficient—use it for status checks. Use `--quiet` to capture IDs for piping. Only use `--json` when you need to parse specific fields programmatically.
+13. **Verb-first vs Noun-first** - Both command styles work identically. Use whichever is more natural for the context. Noun-first groups by resource (notebook, source), verb-first groups by action (create, list, delete).
+14. **Download workflow** - Always wait for artifact completion before downloading. Check status with `nlm studio status <notebook>`, get the artifact ID, then download with `nlm download <type> <notebook> <artifact-id>`.
+15. **Artifact generation takes time** - Audio/video: 1-5 minutes. Reports/quizzes: 30-60 seconds. Always poll status before attempting download.
+16. **Download output files** - If no `--output` specified, files are saved with default names (e.g., `audio_<id>.mp3`, `video_<id>.mp4`, `report_<id>.txt`). Use `--output` to specify custom filenames.
+17. **Streaming downloads** - All downloads use efficient streaming to handle large files without memory issues. This is automatic.
+18. **Drive source sync** - Use `nlm source stale <notebook>` or `nlm list stale-sources <notebook>` to check which Drive sources need syncing before running sync commands.
 """
 
 
