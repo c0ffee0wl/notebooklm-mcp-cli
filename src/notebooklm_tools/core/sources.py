@@ -13,12 +13,14 @@ This mixin provides source-related operations:
 - get_source_fulltext: Get raw text content of a source
 """
 
+from pathlib import Path
 from typing import Any
 
 import httpx
 
 from .base import BaseClient, SOURCE_ADD_TIMEOUT
 from . import constants
+from .exceptions import FileUploadError, FileValidationError
 
 
 class SourceMixin(BaseClient):
@@ -310,6 +312,56 @@ class SourceMixin(BaseClient):
                 source_title = source_data[1] if len(source_data) > 1 else title
                 return {"id": source_id, "title": source_title}
         return None
+
+    def _register_file_source(self, notebook_id: str, filename: str) -> str:
+        """Register a file source intent and get SOURCE_ID.
+
+        Step 1 of the resumable upload protocol.
+
+        Args:
+            notebook_id: The notebook to add the source to
+            filename: The name of the file being uploaded
+
+        Returns:
+            The SOURCE_ID for the upload session
+
+        Raises:
+            FileUploadError: If registration fails
+        """
+        client = self._get_client()
+
+        # Params: [[filename]], notebook_id, [2], [options]
+        params = [
+            [[filename]],
+            notebook_id,
+            [2],
+            [1, None, None, None, None, None, None, None, None, None, [1]],
+        ]
+
+        body = self._build_request_body(self.RPC_ADD_SOURCE_FILE, params)
+        source_path = f"/notebook/{notebook_id}"
+        url = self._build_url(self.RPC_ADD_SOURCE_FILE, source_path)
+
+        response = client.post(url, content=body, timeout=60.0)
+        response.raise_for_status()
+
+        parsed = self._parse_response(response.text)
+        result = self._extract_rpc_result(parsed, self.RPC_ADD_SOURCE_FILE)
+
+        # Extract SOURCE_ID from nested response
+        def extract_id(data):
+            if isinstance(data, str):
+                return data
+            if isinstance(data, list) and len(data) > 0:
+                return extract_id(data[0])
+            return None
+
+        if result and isinstance(result, list):
+            source_id = extract_id(result)
+            if source_id:
+                return source_id
+
+        raise FileUploadError(filename, "Failed to get SOURCE_ID from registration response")
 
     def upload_file(
         self,
