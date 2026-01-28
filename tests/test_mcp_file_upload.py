@@ -1,24 +1,25 @@
-"""Tests for MCP file upload tool."""
+"""Tests for MCP file upload functionality via consolidated source_add."""
 import tempfile
 from pathlib import Path
-from unittest.mock import patch, Mock
+from unittest.mock import patch, MagicMock
 
 import pytest
 
 
-class TestMCPNotebookAddFile:
-    """Test the notebook_add_file MCP tool."""
+class TestMCPSourceAddFile:
+    """Test file upload via the consolidated source_add MCP tool."""
 
-    def test_tool_exists(self):
-        """Test that notebook_add_file tool is registered."""
-        from notebooklm_tools.mcp import server
+    def test_source_add_file_exists(self):
+        """Test that source_add tool with file type is available."""
+        from notebooklm_tools.mcp.tools import sources
 
-        # Check if function exists
-        assert hasattr(server, 'notebook_add_file')
+        # Check if source_add exists and supports file type
+        assert hasattr(sources, 'source_add')
 
-    def test_tool_calls_client_add_file(self):
-        """Test that the MCP tool calls client.add_file correctly."""
-        from notebooklm_tools.mcp import server
+    def test_source_add_file_calls_client(self):
+        """Test that source_add file type calls client.upload_file correctly."""
+        from notebooklm_tools.mcp.tools import sources
+        from notebooklm_tools.mcp.tools import _utils
 
         # Create a test file
         with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
@@ -27,33 +28,41 @@ class TestMCPNotebookAddFile:
 
         try:
             # Mock the client
-            mock_client = Mock()
-            mock_client.add_file = Mock(return_value={"id": "test-source-id", "title": "test.txt"})
+            mock_client = MagicMock()
+            mock_client.upload_file.return_value = {
+                "source_id": "test-source-id",
+                "title": "test.txt",
+                "method": "resumable"
+            }
 
-            # Mock get_client to return our mock
-            with patch.object(server, 'get_client', return_value=mock_client):
-                # Get the wrapped function's original function
-                tool_func = server.notebook_add_file
-                # FastMCP wraps the function, access via fn attribute
-                result = tool_func.fn(
+            # Reset and patch get_client in sources module where it's imported
+            _utils.reset_client()
+            with patch('notebooklm_tools.mcp.tools.sources.get_client', return_value=mock_client):
+                result = sources.source_add(
                     notebook_id="test-notebook-123",
+                    source_type="file",
                     file_path=temp_path
                 )
 
-            # Verify client.add_file was called with correct args
-            mock_client.add_file.assert_called_once_with("test-notebook-123", temp_path)
+            # Verify client.upload_file was called with correct args
+            mock_client.upload_file.assert_called_once_with("test-notebook-123", temp_path)
 
             # Verify return value
-            assert result["id"] == "test-source-id"
-            assert result["title"] == "test.txt"
+            assert result["status"] == "success"
+            assert result["source_id"] == "test-source-id"
+            assert result["source_type"] == "file"
         finally:
             Path(temp_path).unlink()
 
-    def test_tool_docstring(self):
-        """Test that the tool has correct documentation."""
-        from notebooklm_tools.mcp import server
+    def test_source_add_file_requires_path(self):
+        """Test that file_path is required for source_type=file."""
+        from notebooklm_tools.mcp.tools import sources
 
-        tool_func = server.notebook_add_file
-        # FastMCP tool should have description
-        assert hasattr(tool_func, 'description')
-        assert "resumable upload" in tool_func.description.lower()
+        result = sources.source_add(
+            notebook_id="test-notebook",
+            source_type="file"
+            # Missing file_path
+        )
+
+        assert result["status"] == "error"
+        assert "file_path is required" in result["error"]
