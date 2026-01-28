@@ -69,6 +69,7 @@ def research_status(
     max_wait: int = 300,
     compact: bool = True,
     task_id: str | None = None,
+    query: str | None = None,
 ) -> dict[str, Any]:
     """Poll research progress. Blocks until complete or timeout.
 
@@ -79,6 +80,8 @@ def research_status(
         compact: If True (default), truncate report and limit sources shown to save tokens.
                 Use compact=False to get full details.
         task_id: Optional Task ID to poll for a specific research task.
+        query: Optional query text for fallback matching when task_id changes (deep research).
+            Contributed by @saitrogen (PR #15).
     """
     try:
         client = get_client()
@@ -87,6 +90,7 @@ def research_status(
         result = client.poll_research(
             notebook_id=notebook_id,
             target_task_id=task_id,
+            target_query=query,
         )
 
         if result:

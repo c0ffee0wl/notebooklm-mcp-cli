@@ -92,7 +92,7 @@ class ResearchMixin(BaseClient):
             }
         return None
 
-    def poll_research(self, notebook_id: str, target_task_id: str | None = None) -> dict | None:
+    def poll_research(self, notebook_id: str, target_task_id: str | None = None, target_query: str | None = None) -> dict | None:
         """Poll for research results.
 
         Call this repeatedly until status is "completed".
@@ -100,6 +100,9 @@ class ResearchMixin(BaseClient):
         Args:
             notebook_id: The notebook UUID
             target_task_id: Optional specific task ID to poll for
+            target_query: Optional query text for fallback matching when task_id
+                changes (deep research may mutate task_id internally).
+                Contributed by @saitrogen (PR #15).
 
         Returns:
             Dict with status, sources, and summary when complete
@@ -197,9 +200,21 @@ class ResearchMixin(BaseClient):
             for task in research_tasks:
                 if task["task_id"] == target_task_id:
                     return task
+            # Fallback to query matching (PR #15 - @saitrogen)
+            # Deep research may mutate task_id internally
+            if target_query:
+                for task in research_tasks:
+                    if task.get("query", "").lower() == target_query.lower():
+                        return task
             return None
 
-        # Return the most recent (first) task if no task_id specified
+        # If only target_query provided (no task_id), match by query
+        if target_query:
+            for task in research_tasks:
+                if task.get("query", "").lower() == target_query.lower():
+                    return task
+
+        # Return the most recent (first) task if no filters specified
         return research_tasks[0]
 
     def _parse_research_sources(self, sources_data: list) -> list[dict]:

@@ -515,6 +515,8 @@ Think of it as a chance to mentor an AI-assisted developer through code review. 
 Special thanks to:
 - **Le Anh Tuan** ([@latuannetnam](https://github.com/latuannetnam)) for contributing the HTTP transport, debug logging system, and performance optimizations.
 - **David Szabo-Pele** ([@davidszp](https://github.com/davidszp)) for the `source_get_content` tool and Linux auth fixes.
+- **saitrogen** ([@saitrogen](https://github.com/saitrogen)) for the research polling query fallback fix.
+- **VooDisss** ([@VooDisss](https://github.com/VooDisss)) for multi-browser authentication improvements.
 
 
 ## License
