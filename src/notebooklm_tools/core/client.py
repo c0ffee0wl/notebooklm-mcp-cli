@@ -9,7 +9,7 @@ import logging
 import os
 import re
 import urllib.parse
-from dataclasses import dataclass
+
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
@@ -32,6 +32,14 @@ from .utils import (
     _parse_url_params,
     parse_timestamp,
     extract_cookies_from_chrome_export,
+)
+
+# Import dataclasses from data_types module (re-exported for backward compatibility)
+from .data_types import (
+    ConversationTurn,
+    Collaborator,
+    ShareStatus,
+    Notebook,
 )
 
 
@@ -77,61 +85,7 @@ OWNERSHIP_MINE = constants.OWNERSHIP_MINE
 OWNERSHIP_SHARED = constants.OWNERSHIP_SHARED
 
 
-@dataclass
-class ConversationTurn:
-    """Represents a single turn in a conversation (query + response).
-
-    Used to track conversation history for follow-up queries.
-    NotebookLM requires the full conversation history in follow-up requests.
-    """
-    query: str       # The user's question
-    answer: str      # The AI's response
-    turn_number: int  # 1-indexed turn number in the conversation
-
-
-@dataclass
-class Collaborator:
-    """A user with access to a notebook."""
-    email: str
-    role: str  # "owner", "editor", "viewer"
-    is_pending: bool = False
-    display_name: str | None = None
-
-
-@dataclass
-class ShareStatus:
-    """Current sharing state of a notebook."""
-    is_public: bool
-    access_level: str  # "restricted" or "public"
-    collaborators: list[Collaborator]
-    public_link: str | None = None
-
-
-
-
-@dataclass
-class Notebook:
-    """Represents a NotebookLM notebook."""
-
-    id: str
-    title: str
-    source_count: int
-    sources: list[dict]
-    is_owned: bool = True     # True if owned by user, False if shared with user
-    is_shared: bool = False   # True if shared with others (for owned notebooks)
-    created_at: str | None = None   # ISO format timestamp
-    modified_at: str | None = None  # ISO format timestamp
-
-    @property
-    def url(self) -> str:
-        return f"https://notebooklm.google.com/notebook/{self.id}"
-
-    @property
-    def ownership(self) -> str:
-        """Return human-readable ownership status."""
-        if self.is_owned:
-            return "owned"
-        return "shared_with_me"
+# Dataclasses are now imported from data_types.py above
 
 
 class NotebookLMClient:
