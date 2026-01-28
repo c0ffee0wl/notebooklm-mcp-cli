@@ -103,15 +103,15 @@ def source_add(
         elif source_type == "file":
             if not file_path:
                 return {"status": "error", "error": "file_path is required for source_type='file'"}
-            result = client.upload_file(notebook_id, file_path)
-            if result and result.get("source_id"):
+            result = client.add_file(notebook_id, file_path)
+            if result and result.get("id"):
                 return {
                     "status": "success",
                     "source_type": "file",
-                    "source_id": result["source_id"],
+                    "source_id": result["id"],
                     "title": result.get("title", file_path.split("/")[-1]),
                     "file_path": file_path,
-                    "method": result.get("method", "unknown"),
+                    "method": "resumable",
                 }
 
         return {"status": "error", "error": f"Failed to add {source_type} source"}
