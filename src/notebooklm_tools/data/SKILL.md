@@ -116,11 +116,12 @@ mcp__notebooklm-mcp__save_auth_tokens(cookies="<cookie_header>")
 #### CLI Authentication
 
 ```bash
-nlm login                    # Launch Chrome, extract cookies (primary method)
-nlm login --check            # Validate current session
-nlm login --profile work     # Use named profile for multiple accounts
-nlm auth status              # Check if authenticated
-nlm auth list                # List all profiles
+nlm login                           # Launch Chrome, extract cookies (primary method)
+nlm login --check                   # Validate current session
+nlm login --profile work            # Use named profile for multiple accounts
+nlm login profile list              # List all profiles
+nlm login profile delete <name>     # Delete a profile
+nlm login profile rename <old> <new> # Rename a profile
 ```
 
 **Session lifetime**: ~20 minutes. Re-authenticate when commands fail with auth errors.

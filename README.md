@@ -243,9 +243,10 @@ nlm login --manual --file cookies.txt
 
 **Profile management:**
 ```bash
-nlm auth status              # Show current auth status
-nlm auth list                # List all profiles
-nlm auth delete <profile>    # Delete a profile
+nlm login --check                    # Show current auth status
+nlm login profile list               # List all profiles
+nlm login profile delete <profile>   # Delete a profile
+nlm login profile rename <old> <new> # Rename a profile
 ```
 
 ### Standalone Auth Tool

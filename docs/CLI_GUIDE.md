@@ -15,10 +15,12 @@ pip install notebooklm-mcp-cli
 ## Authentication
 
 ```bash
-nlm login                    # Opens Chrome, extracts cookies automatically
-nlm login --profile work     # Named profile for multiple accounts
-nlm auth status              # Check if authenticated
-nlm auth list                # List all profiles
+nlm login                         # Opens Chrome, extracts cookies automatically
+nlm login --profile work          # Named profile for multiple accounts
+nlm login --check                 # Check if authenticated
+nlm login profile list            # List all profiles
+nlm login profile delete <name>   # Delete a profile
+nlm login profile rename <old> <new>  # Rename a profile
 ```
 
 ## Command Structure
