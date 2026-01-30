@@ -174,7 +174,7 @@ class TableFormatter(Formatter):
             if isinstance(src, dict):
                 src_id = src.get('id', '')
                 src_title = src.get('title', 'Untitled')
-                src_type = src.get('type', 'unknown')
+                src_type = src.get('source_type_name') or src.get('type', 'unknown')
                 src_url = src.get('url', '')
                 is_stale = src.get('is_stale', False)
             else:
@@ -312,7 +312,7 @@ class JsonFormatter(Formatter):
                 item = {
                     'id': src.get('id', ''),
                     'title': src.get('title', ''),
-                    'type': src.get('type', ''),
+                    'type': src.get('source_type_name') or src.get('type', ''),
                     'url': src.get('url', ''),
                 }
                 if full:
